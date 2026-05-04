@@ -178,7 +178,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: "Variables: `<@USER>`, `{ANNIV_YEARS}`, `{TONE}`\nFormat: `*bold*` `_italic_` `~strike~`",
+            text: "Variables: `<@USER>`, `{ANNIV_YEARS}`\nFormat: `*bold*` `_italic_` `~strike~`",
           },
         ],
       },
@@ -380,44 +380,9 @@ function createHomeModule({ db, slack, logger = console }) {
           elements: [
             {
               type: "button",
-              text: { type: "plain_text", text: "👁️ Preview Events" },
-              action_id: "preview_events",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "📅 Calendar View" },
-              action_id: "open_calendar_modal",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "📥 Data Manager" },
-              action_id: "open_data_manager_modal",
-            },
-          ],
-        },
-        {
-          type: "actions",
-          elements: [
-            {
-              type: "button",
               text: { type: "plain_text", text: "➕ Add Channel" },
               action_id: "open_settings_modal",
             },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "👥 Manage Admins" },
-              action_id: "open_manage_admins_modal",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "✍️ Templates" },
-              action_id: "open_templates_modal",
-            },
-          ],
-        },
-        {
-          type: "actions",
-          elements: [
             {
               type: "button",
               text: { type: "plain_text", text: "👥 Manage Employees" },
@@ -425,14 +390,43 @@ function createHomeModule({ db, slack, logger = console }) {
             },
             {
               type: "button",
-              text: { type: "plain_text", text: "📊 Analytics" },
-              action_id: "view_analytics",
+              text: { type: "plain_text", text: "👥 Manage Admins" },
+              action_id: "open_manage_admins_modal",
+            },
+          ],
+        },
+        {
+          type: "actions",
+          elements: [
+            {
+              type: "button",
+              text: { type: "plain_text", text: "✍️ Templates" },
+              action_id: "open_templates_modal",
             },
             {
               type: "button",
-              text: { type: "plain_text", text: "⏰ Reminders" },
-              action_id: "open_create_reminder_modal",
-              value: settings.channelId || "",
+              text: { type: "plain_text", text: "📥 Data Manager" },
+              action_id: "open_data_manager_modal",
+            },
+            {
+              type: "button",
+              text: { type: "plain_text", text: "📊 Analytics" },
+              action_id: "view_analytics",
+            },
+          ],
+        },
+        {
+          type: "actions",
+          elements: [
+            {
+              type: "button",
+              text: { type: "plain_text", text: "👁️ Preview Events" },
+              action_id: "preview_events",
+            },
+            {
+              type: "button",
+              text: { type: "plain_text", text: "📅 Calendar View" },
+              action_id: "open_calendar_modal",
             },
           ],
         },

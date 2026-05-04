@@ -201,10 +201,6 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
 
   async function processImportData(headers, rows) {
     const slackIdIndex = findColumnIndex(headers, "slack_id");
-    if (slackIdIndex === -1) {
-      throw new Error("Required column missing: slack_id");
-    }
-
     const emailIndex = findColumnIndex(headers, "email");
     const nameIndex = findColumnIndex(headers, "name");
     const birthdayIndex = findColumnIndex(headers, "birthday");
@@ -215,14 +211,32 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
     const annivMonthIndex = findColumnIndex(headers, "anniv_month");
     const annivYearIndex = findColumnIndex(headers, "anniv_year");
 
+    if (slackIdIndex === -1 && emailIndex === -1) {
+      throw new Error("Required column missing: Must provide either slack_id or email.");
+    }
+
+    const existingEmployees = await db.listEmployees();
+    const emailToSlackId = new Map();
+    for (const emp of existingEmployees) {
+      if (emp.email) {
+        emailToSlackId.set(emp.email.toLowerCase(), emp.slackId);
+      }
+    }
+
     const deduped = new Map();
     let skipped = 0;
 
     for (const row of rows) {
-      const slackId = String(row[slackIdIndex] || "")
+      let slackId = slackIdIndex !== -1 ? String(row[slackIdIndex] || "")
         .trim()
         .replace(/^<@/, "")
-        .replace(/>$/, "");
+        .replace(/>$/, "") : "";
+
+      const email = emailIndex !== -1 ? String(row[emailIndex] || "").trim() : "";
+
+      if (!slackId && email) {
+        slackId = emailToSlackId.get(email.toLowerCase()) || "";
+      }
 
       if (!slackId) {
         skipped += 1;

@@ -6,7 +6,6 @@ const {
   buildCelebrationBlocks,
   buildCelebrationTextFallback,
   buildEventId,
-  getAnniversaryTone,
   getAnniversaryYears,
   ordinal,
   renderTemplate,
@@ -26,9 +25,9 @@ const DEFAULT_MESSAGES = {
       "Cheers to <@USER> and an amazing birthday! 🥂",
     ],
     anniversary: [
-      "Let's celebrate <@USER> and this {ANNIV_YEARS} milestone — {TONE}! 🎊",
-      "Big applause for <@USER> on this {ANNIV_YEARS} work anniversary — {TONE}! 👏",
-      "Cheers to <@USER> for reaching {ANNIV_YEARS} years — {TONE}! 🥂",
+      "Let's celebrate <@USER> and {ANNIV_YEARS} amazing years! 🎊",
+      "Big applause for <@USER> on {ANNIV_YEARS} years! 👏",
+      "Cheers to <@USER> for reaching {ANNIV_YEARS} years! 🥂",
     ],
   },
   professional: {
@@ -38,9 +37,9 @@ const DEFAULT_MESSAGES = {
       "A warm celebration for <@USER> today. 🥂",
     ],
     anniversary: [
-      "Please join us in celebrating <@USER> and this {ANNIV_YEARS} milestone — {TONE}.",
-      "Recognizing <@USER> on a {ANNIV_YEARS} work anniversary — {TONE}.",
-      "Thank you, <@USER>, for this {ANNIV_YEARS} milestone — {TONE}.",
+      "Please join us in celebrating <@USER> on {ANNIV_YEARS} years.",
+      "Recognizing <@USER> on {ANNIV_YEARS} years with us.",
+      "Thank you, <@USER>, for {ANNIV_YEARS} years of dedication.",
     ],
   },
   minimal: {
@@ -50,9 +49,9 @@ const DEFAULT_MESSAGES = {
       "Celebrating <@USER> today. 🥂",
     ],
     anniversary: [
-      "Celebrating <@USER> and {ANNIV_YEARS} years — {TONE}.",
-      "Congrats to <@USER> on {ANNIV_YEARS} years — {TONE}.",
-      "A milestone for <@USER>: {ANNIV_YEARS} years — {TONE}.",
+      "Celebrating <@USER> and {ANNIV_YEARS} years.",
+      "Congrats to <@USER> on {ANNIV_YEARS} years.",
+      "A milestone for <@USER>: {ANNIV_YEARS} years.",
     ],
   },
 };
@@ -209,7 +208,7 @@ function createScheduler({ app, db, slack, logger = console }) {
     return renderTemplate(template, {
       slackId: event.userId,
       years,
-    }).replace(/\{TONE\}/g, getAnniversaryTone(years));
+    });
   }
 
   async function resolveEventOverride(event, now) {
@@ -240,11 +239,10 @@ function createScheduler({ app, db, slack, logger = console }) {
   function buildBatchCheer(type, events, messageTemplate, now) {
     if (!messageTemplate) {
       if (events.length === 1) {
+        const years = getAnniversaryYears(events[0], now);
         return type === "birthday"
           ? `Let's give <@${events[0].userId}> a big cheer for being awesome! 🎊`
-          : `Let's give <@${events[0].userId}> a big cheer for ${getAnniversaryTone(
-              getAnniversaryYears(events[0], now),
-            )}! 🎊`;
+          : `Let's give <@${events[0].userId}> a big cheer for ${years ? `${years} amazing years` : "their work anniversary"}! 🎊`;
       }
 
       return `Let's give ${events.map((event) => `<@${event.userId}>`).join(", ")} a big cheer for being awesome! 🎊`;

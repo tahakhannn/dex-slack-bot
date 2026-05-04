@@ -14,7 +14,7 @@ function createTemplatesModule({ db, home, logger = console }) {
     },
     anniversary: {
       message:
-        "Let's celebrate <@USER> and this {ANNIV_YEARS} milestone — {TONE}! 🎊",
+        "Let's celebrate <@USER> and {ANNIV_YEARS} amazing years! 🎊",
       gifUrls: [
         "https://media.giphy.com/media/ely3apij36BJhoZ234/giphy.gif",
         "https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif",
@@ -46,7 +46,7 @@ function createTemplatesModule({ db, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Adjust the celebration intro, cheer messages, and GIF pools.\nSupported variables: `<@USER>`, `{ANNIV_YEARS}`, `{TONE}`.",
+              text: "Adjust the celebration intro, cheer messages, and GIF pools.\nSupported variables: `<@USER>`, `{ANNIV_YEARS}`.",
             },
           ],
         },
@@ -121,7 +121,7 @@ function createTemplatesModule({ db, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "The cheer line shown below the anniversary details.\nUse `<@USER>`, `{ANNIV_YEARS}`, `{TONE}`. Format: `*bold*` `_italic_` `~strike~`.",
+              text: "The cheer line shown below the anniversary details.\nUse `<@USER>`, `{ANNIV_YEARS}`. Format: `*bold*` `_italic_` `~strike~`.",
             },
           ],
         },
