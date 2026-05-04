@@ -1,0 +1,25 @@
+{
+  "name": "slack-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "check": "node --check app.js",
+    "test": "node --check app.js && echo \"No automated tests configured yet\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@slack/bolt": "^4.7.0",
+    "@supabase/supabase-js": "^2.103.3",
+    "dotenv": "^17.4.1",
+    "luxon": "^3.7.2",
+    "node-cron": "^4.2.1",
+    "openai": "^6.34.0",
+    "papaparse": "^5.5.3",
+    "xlsx": "^0.18.5"
+  }
+}
