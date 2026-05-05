@@ -127,15 +127,13 @@ const TABLE_COLUMNS = {
 
 function createDbHelpers({ logger = console } = {}) {
   const columnCache = new Map();
-  const employeeCacheStore = { data: null, fetchedAt: null, ttlMs: 5 * 60 * 1000 };
 
   function defaultWorkspaceId() {
     return process.env.SLACK_TEAM_ID || null;
   }
 
   function invalidateEmployeeCache() {
-    employeeCacheStore.data = null;
-    employeeCacheStore.fetchedAt = null;
+    // No-op: cache removed for multi-process safety
   }
 
   async function detectColumns(table) {
@@ -267,10 +265,6 @@ function createDbHelpers({ logger = console } = {}) {
   }
 
   async function listEmployees() {
-    if (employeeCacheStore.data && Date.now() - employeeCacheStore.fetchedAt < employeeCacheStore.ttlMs) {
-      return employeeCacheStore.data;
-    }
-
     const [employees, profiles] = await Promise.all([
       selectAll("employees", (query) => query.order("name", { ascending: true })),
       selectAll("user_profiles", (query) => query.order("slack_id", { ascending: true })),
@@ -288,10 +282,7 @@ function createDbHelpers({ logger = console } = {}) {
       rows.push(normalizeEmployee({}, profile));
     }
 
-    const result = rows.filter((row) => row.slackId);
-    employeeCacheStore.data = result;
-    employeeCacheStore.fetchedAt = Date.now();
-    return result;
+    return rows.filter((row) => row.slackId);
   }
 
   async function getEmployee(slackId) {
