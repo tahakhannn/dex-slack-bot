@@ -202,7 +202,7 @@ function buildDateSummary(label, dateParts) {
 }
 
 function parseStoredDate(dateString) {
-  if (!dateString) {
+  if (!dateString || String(dateString).startsWith("1900-01-01")) {
     return null;
   }
 

@@ -1108,7 +1108,7 @@ function createDbHelpers({ logger = console } = {}) {
     const [employeeUpdate, profileUpdate] = await Promise.all([
       supabase
         .from("employees")
-        .update({ birthday: null, join_date: null, updated_at: new Date().toISOString() })
+        .update({ birthday: "1900-01-01", join_date: "1900-01-01", updated_at: new Date().toISOString() })
         .eq("slack_id", slackId),
       supabase
         .from("user_profiles")
