@@ -79,20 +79,12 @@ process.on("uncaughtException", (error) => {
   logger.error("Uncaught exception", error);
 });
 
-const port = Number(process.env.PORT || 3000);
-
-receiver.app.listen(port, async () => {
-  logger.info(`Dex celebration bot listening on port ${port}`);
-  logger.info(`Required Slack scopes: ${REQUIRED_SCOPES.join(", ")}`);
-  scheduler.start();
-
-  // Backfill emails for employees missing them
-  try {
-    const backfilled = await db.backfillEmails(app.client, slack);
-    if (backfilled > 0) {
-      logger.info(`Email backfill completed: ${backfilled} employee(s) updated`);
-    }
-  } catch (error) {
-    logger.error("Email backfill failed", error);
-  }
-});
+module.exports = {
+  app,
+  receiver,
+  scheduler,
+  db,
+  slack,
+  logger,
+  REQUIRED_SCOPES,
+};

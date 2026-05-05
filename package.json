@@ -4,9 +4,11 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "check": "node --check app.js",
-    "test": "node --check app.js && echo \"No automated tests configured yet\""
+    "start": "node web.js",
+    "worker": "node worker.js",
+    "dev": "node web.js & node worker.js",
+    "check": "node --check web.js && node --check worker.js",
+    "test": "npm run check && echo \"No automated tests configured yet\""
   },
   "keywords": [],
   "author": "",
