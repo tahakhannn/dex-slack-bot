@@ -1,7 +1,7 @@
 const { DateTime } = require("luxon");
 const { buildDateInputBlocks, parseDateInput, parseCheckboxValues } = require("../helpers/events");
 
-function createOnboardingModule({ db, slack, home }) {
+function createOnboardingModule({ db, slack, home, logger = console }) {
   function buildProfileModal({ userId, profile, source }) {
 
     return {
@@ -89,6 +89,22 @@ function createOnboardingModule({ db, slack, home }) {
       await slack.ensureSlackEventUserRecord(event.user, db);
       await slack.syncUserEmailFromSlack(client, event.user.id, db);
       await maybeSendOnboardingPrompt(client, event.user.id);
+    });
+
+    app.event("user_change", async ({ event }) => {
+      try {
+        const user = event.user;
+        if (!user?.id || user.is_bot) {
+          return;
+        }
+
+        if (user.deleted) {
+          logger.info(`Detected deactivated Slack user ${user.id}, removing from system.`);
+          await db.deleteEmployee(user.id);
+        }
+      } catch (error) {
+        logger.error(`Failed to handle user_change for ${event.user?.id}`, error);
+      }
     });
 
     app.action("start_onboarding_setup", async ({ ack, body, client }) => {

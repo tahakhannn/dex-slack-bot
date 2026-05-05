@@ -192,7 +192,11 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
                   value: JSON.stringify({ action: "edit", slackId: employee.slackId }),
                 },
                 {
-                  text: { type: "plain_text", text: "Delete" },
+                  text: { type: "plain_text", text: "Clear Data" },
+                  value: JSON.stringify({ action: "clear", slackId: employee.slackId }),
+                },
+                {
+                  text: { type: "plain_text", text: "Remove from System" },
                   value: JSON.stringify({ action: "delete", slackId: employee.slackId }),
                 },
               ],
@@ -547,6 +551,13 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
         }
 
         const payload = JSON.parse(action.selected_option.value);
+        if (payload.action === "clear") {
+          await db.clearEmployeeCelebrationData(payload.slackId);
+          await refreshEmployeeModal(client, body);
+          await home.publishHome(client, body.user.id);
+          return;
+        }
+
         if (payload.action === "delete") {
           await db.deleteEmployee(payload.slackId);
           await refreshEmployeeModal(client, body);

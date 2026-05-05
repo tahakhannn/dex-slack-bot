@@ -1113,6 +1113,41 @@ function createDbHelpers({ logger = console } = {}) {
     }
   }
 
+  async function clearEmployeeCelebrationData(slackId) {
+    const [employeeUpdate, profileUpdate] = await Promise.all([
+      supabase
+        .from("employees")
+        .update({ birthday: null, join_date: null, updated_at: new Date().toISOString() })
+        .eq("slack_id", slackId),
+      supabase
+        .from("user_profiles")
+        .update({
+          birth_day: null,
+          birth_month: null,
+          birth_year: null,
+          anniv_day: null,
+          anniv_month: null,
+          anniv_year: null,
+          birthday_opt_out: false,
+          anniversary_opt_out: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("slack_id", slackId),
+    ]);
+
+    if (employeeUpdate.error) {
+      logger.error("Failed to clear employee celebration data", employeeUpdate.error);
+      throw employeeUpdate.error;
+    }
+
+    if (profileUpdate.error) {
+      logger.error("Failed to clear profile celebration data", profileUpdate.error);
+      throw profileUpdate.error;
+    }
+
+    invalidateEmployeeCache();
+  }
+
   async function listEmployeesMissingCelebrationData() {
     const employees = await listEmployees();
     return employees.filter(
@@ -1246,6 +1281,7 @@ function createDbHelpers({ logger = console } = {}) {
     getEmployee,
     saveEmployee,
     deleteEmployee,
+    clearEmployeeCelebrationData,
     invalidateEmployeeCache,
     isAdmin,
     listAdmins,
