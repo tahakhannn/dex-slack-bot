@@ -349,6 +349,25 @@ function createHomeModule({ db, slack, logger = console }) {
     const missingUsers = isAdmin ? await db.listEmployeesMissingCelebrationData() : [];
     const upcoming = await buildUpcomingEvents(client, settings, homeState);
 
+    if (!isAdmin) {
+      return {
+        type: "home",
+        blocks: [
+          {
+            type: "header",
+            text: { type: "plain_text", text: "🚫 Access Denied" },
+          },
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "You do not have access to this application. If you believe this is a mistake, please contact your workspace administrator.",
+            },
+          },
+        ],
+      };
+    }
+
     const blocks = [
       {
         type: "header",
