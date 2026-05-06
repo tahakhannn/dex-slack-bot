@@ -52,16 +52,16 @@ function ordinal(value) {
 function getAnniversaryYears(event, now = DateTime.now()) {
   const startYearValue = event?.employee?.anniversary?.year ?? event?.dateParts?.year;
   if (startYearValue === null || startYearValue === undefined) {
-    return null;
+    return 1;
   }
   
   const startYear = Number(startYearValue);
   if (!Number.isFinite(startYear)) {
-    return null;
+    return 1;
   }
 
   const years = now.year - startYear;
-  return years > 0 ? years : null;
+  return years > 0 ? years : 1;
 }
 
 function getAnniversaryTone(years) {
