@@ -520,6 +520,7 @@ function createHomeModule({ db, slack, logger = console }) {
             type: "users_select",
             action_id: "upcoming_events_search",
             placeholder: { type: "plain_text", text: "Search teammates" },
+            ...(homeState.filterUserId ? { initial_user: homeState.filterUserId } : {}),
           },
           ...(homeState.filterUserId
             ? [
