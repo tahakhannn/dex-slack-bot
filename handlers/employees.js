@@ -395,18 +395,21 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
       }
     });
 
-    app.action("employee_search", async ({ ack, body, actions, client }) => {
+    app.action("employee_search", async ({ ack, body, action, client }) => {
       await ack();
 
       try {
-        const slackId = actions[0].selected_user || null;
+        const slackId = action.selected_user || null;
+        logger.info('employee_search triggered. action: ' + JSON.stringify(action));
+        
         await client.views.update({
           view_id: body.view.id,
           hash: body.view.hash,
           view: await buildEmployeesModal(slackId),
         });
+        logger.info('employee_search view updated successfully.');
       } catch (error) {
-        logger.error("Failed to filter employees", error);
+        logger.error('employee_search error: ' + error.message, error);
       }
     });
 
