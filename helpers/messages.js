@@ -50,7 +50,12 @@ function ordinal(value) {
 }
 
 function getAnniversaryYears(event, now = DateTime.now()) {
-  const startYear = Number(event?.employee?.anniversary?.year || event?.dateParts?.year);
+  const startYearValue = event?.employee?.anniversary?.year ?? event?.dateParts?.year;
+  if (startYearValue === null || startYearValue === undefined) {
+    return null;
+  }
+  
+  const startYear = Number(startYearValue);
   if (!Number.isFinite(startYear)) {
     return null;
   }
@@ -81,10 +86,9 @@ function formatCelebrationDate(dateLike, includeYear = false) {
     return "";
   }
   const day = dt.day;
-  const suffix = ordinal(day).replace(String(day), "");
   return includeYear
-    ? `${dt.toFormat("MMMM")} ${day}${suffix}, ${dt.year}`
-    : `${dt.toFormat("MMMM")} ${day}${suffix}`;
+    ? `${dt.toFormat("MMMM")} ${day}, ${dt.year}`
+    : `${dt.toFormat("MMMM")} ${day}`;
 }
 
 function buildEventId({ slackId, type, date }) {
@@ -104,14 +108,14 @@ function getEventHeadline(event, now) {
   }
 
   const years = getAnniversaryYears(event, now);
-  return years ? `Work anniversary #${years} 💼` : "Work anniversary 💼";
+  return years ? `Work anniversary # ${years} 💼` : "Work anniversary 💼";
 }
 
 function buildEventDetailText(event, now) {
   return [
     `*<@${event.userId}>*`,
     getEventHeadline(event, now),
-    formatCelebrationDate(event.date),
+    `_${formatCelebrationDate(event.date)}_`,
   ].join("\n");
 }
 
@@ -148,15 +152,17 @@ function buildCelebrationBlocks({
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `${includeChannelPing ? "<!channel>\n" : ""}*${introText}*`,
+        text: `${includeChannelPing ? "<!channel>\n\n" : ""}*${introText}*`,
       },
     },
     {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: buildSummaryLine(type, events.length),
-      },
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: buildSummaryLine(type, events.length),
+        },
+      ],
     },
   ];
 
