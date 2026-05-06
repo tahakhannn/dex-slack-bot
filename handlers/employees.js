@@ -146,6 +146,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
             type: "users_select",
             action_id: "employee_search",
             placeholder: { type: "plain_text", text: "🔍 Search employees..." },
+            ...(filterSlackId ? { initial_user: filterSlackId } : {}),
           },
           {
             type: "button",
@@ -401,6 +402,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
         const slackId = actions[0].selected_user || null;
         await client.views.update({
           view_id: body.view.id,
+          hash: body.view.hash,
           view: await buildEmployeesModal(slackId),
         });
       } catch (error) {
@@ -414,6 +416,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
       try {
         await client.views.update({
           view_id: body.view.id,
+          hash: body.view.hash,
           view: await buildEmployeesModal(),
         });
       } catch (error) {
