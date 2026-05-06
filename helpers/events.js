@@ -230,7 +230,7 @@ function parseStoredDate(dateString) {
   return {
     day: parsed.day,
     month: parsed.month,
-    year: parsed.year !== 2000 ? parsed.year : null,
+    year: parsed.year !== 1904 ? parsed.year : null,
   };
 }
 
@@ -240,7 +240,7 @@ function toStoredDate(dateParts) {
     return null;
   }
 
-  const year = normalized.year || 2000;
+  const year = normalized.year || 1904;
   return DateTime.fromObject(
     { year, month: normalized.month, day: normalized.day },
     { zone: "UTC" },
