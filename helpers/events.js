@@ -116,6 +116,15 @@ function normalizeOptionalDate(dateParts) {
   };
 }
 
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: 100 }, (_, index) => {
+  const year = String(currentYear + 5 - index);
+  return {
+    text: { type: "plain_text", text: year },
+    value: year,
+  };
+});
+
 function buildDateInputBlocks({ prefix, label, initialDate = null, optional = true }) {
   const normalized = normalizeOptionalDate(initialDate);
 
@@ -163,10 +172,17 @@ function buildDateInputBlocks({ prefix, label, initialDate = null, optional = tr
       optional,
       label: { type: "plain_text", text: `${label} year` },
       element: {
-        type: "plain_text_input",
+        type: "static_select",
         action_id: "value",
-        placeholder: { type: "plain_text", text: "e.g. 1994" },
-        ...(normalized?.year ? { initial_value: String(normalized.year) } : {}),
+        placeholder: { type: "plain_text", text: "Select year" },
+        options: YEAR_OPTIONS,
+        ...(normalized?.year && YEAR_OPTIONS.some((o) => Number(o.value) === normalized.year)
+          ? {
+              initial_option: YEAR_OPTIONS.find(
+                (option) => Number(option.value) === normalized.year,
+              ),
+            }
+          : {}),
       },
     },
   ];
