@@ -161,7 +161,7 @@ function buildDateInputBlocks({ prefix, label, initialDate = null, optional = tr
       type: "input",
       block_id: `${prefix}_year`,
       optional,
-      label: { type: "plain_text", text: `${label} year (optional)` },
+      label: { type: "plain_text", text: `${label} year` },
       element: {
         type: "plain_text_input",
         action_id: "value",
