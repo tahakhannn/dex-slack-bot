@@ -346,7 +346,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "*Export CSV*\nGenerate a full employee export with birthdays, anniversaries, and email.",
+            text: "*Export CSV*\nGenerate a full employee export with names, birthdays, anniversaries, and email.",
           },
           accessory: {
             type: "button",
@@ -389,7 +389,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Supported columns: `slack_id`, `email`, `birth_day`, `birth_month`, `anniv_day`, `anniv_month`, `anniv_year`, plus flexible aliases like `birthday`, `anniversary_date`, and `full_name`.",
+              text: "Supported columns: `slack_id`, `name`, `email`, `birth_day`, `birth_month`, `anniv_day`, `anniv_month`, `anniv_year`, plus flexible aliases like `birthday`, `anniversary_date`, and `full_name`.",
             },
           ],
         },
@@ -491,10 +491,11 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
   async function deliverExport(client, userId) {
     const employees = await db.listEmployees();
     const rows = [
-      "slack_id,email,birth_day,birth_month,anniv_day,anniv_month,anniv_year",
+      "slack_id,name,email,birth_day,birth_month,anniv_day,anniv_month,anniv_year",
       ...employees.map((employee) =>
         [
           employee.slackId || "",
+          `"${(employee.name || "").replace(/"/g, '""')}"`,
           employee.email || "",
           employee.birthday?.day || "",
           employee.birthday?.month || "",
