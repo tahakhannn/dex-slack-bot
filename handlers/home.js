@@ -609,9 +609,9 @@ function createHomeModule({ db, slack, logger = console }) {
     });
 
 
-    app.action("upcoming_events_search", async ({ ack, body, actions, client }) => {
+    app.action("upcoming_events_search", async ({ ack, body, action, client }) => {
       await ack();
-      setState(body.user.id, { filterUserId: actions[0].selected_user || null, page: 1 });
+      setState(body.user.id, { filterUserId: action.selected_user || null, page: 1 });
       await publishHome(client, body.user.id);
     });
 
