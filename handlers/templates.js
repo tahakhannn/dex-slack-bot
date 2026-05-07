@@ -176,7 +176,7 @@ function createTemplatesModule({ db, home, logger = console }) {
     });
 
     app.view("save_templates_modal", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const introText = (view.state.values.intro_text.value.value || "").trim();

@@ -804,7 +804,7 @@ function createHomeModule({ db, slack, logger = console }) {
     });
 
     app.view("save_event_override_modal", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const metadata = JSON.parse(view.private_metadata || "{}");

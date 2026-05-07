@@ -96,7 +96,7 @@ function createRemindersModule({ db, home }) {
         return;
       }
 
-      await ack();
+      await ack({ response_action: "clear" });
 
       const metadata = JSON.parse(view.private_metadata || "{}");
       const channelId = metadata.channelId || process.env.DEFAULT_CHANNEL_ID || null;

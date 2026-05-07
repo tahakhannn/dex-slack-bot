@@ -532,7 +532,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     });
 
     app.view("save_added_employee_modal", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const metadata = JSON.parse(view.private_metadata || "{}");
@@ -571,7 +571,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     });
 
     app.view("save_edited_employee_modal", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const metadata = JSON.parse(view.private_metadata || "{}");
@@ -584,7 +584,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     });
 
     app.view("manage_admins_submit", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const selectedUsers = view.state.values.admins.admins_select.selected_users || [];
@@ -628,7 +628,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
         return;
       }
 
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         for (const row of rows) {

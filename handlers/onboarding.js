@@ -134,7 +134,7 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
     });
 
     app.view("save_user_profile_modal", async ({ ack, view, body, client }) => {
-      await ack();
+      await ack({ response_action: "clear" });
 
       const metadata = JSON.parse(view.private_metadata || "{}");
       const birthday = parseDateInput(view.state.values, "birthday");

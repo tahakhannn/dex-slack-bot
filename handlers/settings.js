@@ -251,7 +251,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
       const values = view.state.values;
       const stepOne = JSON.parse(view.private_metadata || "{}");
 
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const settings = {

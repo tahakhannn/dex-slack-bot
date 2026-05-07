@@ -599,7 +599,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
         return;
       }
 
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         const parsed = await parseImportPayload(client, view.state.values);
@@ -647,7 +647,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
         return;
       }
 
-      await ack();
+      await ack({ response_action: "clear" });
 
       try {
         await db.resetEmployeeData();
