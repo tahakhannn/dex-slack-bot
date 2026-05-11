@@ -424,6 +424,11 @@ function createHomeModule({ db, slack, logger = console }) {
             },
             {
               type: "button",
+              text: { type: "plain_text", text: "📋 Manage Templates" },
+              action_id: "open_manage_templates_modal",
+            },
+            {
+              type: "button",
               text: { type: "plain_text", text: "📥 Data Manager" },
               action_id: "open_data_manager_modal",
             },

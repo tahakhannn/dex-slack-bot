@@ -112,6 +112,26 @@ const TABLE_COLUMNS = {
     "created_at",
     "updated_at",
   ],
+  bulk_templates: [
+    "id",
+    "workspace_id",
+    "type",
+    "name",
+    "message",
+    "gif_urls",
+    "created_at",
+    "updated_at",
+  ],
+  bulk_template_history: [
+    "id",
+    "workspace_id",
+    "slack_id",
+    "type",
+    "last_template_id",
+    "last_gif_index",
+    "updated_at",
+    "created_at",
+  ],
   event_overrides: [
     "id",
     "workspace_id",
@@ -1265,6 +1285,138 @@ function createDbHelpers({ logger = console } = {}) {
     }
   }
 
+  // ─── Bulk Templates ───────────────────────────────────────────────────────
+
+  function normalizeBulkTemplate(row = {}) {
+    return {
+      id: row.id || null,
+      type: row.type || "birthday",
+      name: row.name || "Template",
+      message: row.message || "",
+      gifUrls: Array.isArray(row.gif_urls) ? row.gif_urls : [],
+    };
+  }
+
+  async function listBulkTemplates(type = null) {
+    const columns = await detectColumns("bulk_templates");
+    if (!columns.length) {
+      return [];
+    }
+
+    const rows = await selectAll("bulk_templates", (query) => {
+      let q = query.order("created_at", { ascending: true });
+      if (type) q = q.eq("type", type);
+      return q;
+    });
+    return rows.map((row) => normalizeBulkTemplate(row));
+  }
+
+  async function getBulkTemplate(id) {
+    const columns = await detectColumns("bulk_templates");
+    if (!columns.length || !id) return null;
+    const row = await selectSingle("bulk_templates", "id", id);
+    return row ? normalizeBulkTemplate(row) : null;
+  }
+
+  async function saveBulkTemplate({ id = null, type, name, message, gifUrls }) {
+    const columns = await detectColumns("bulk_templates");
+    if (!columns.length) {
+      throw new Error("bulk_templates table is missing. Apply the required Supabase migration first.");
+    }
+
+    const payload = {
+      workspace_id: defaultWorkspaceId(),
+      type,
+      name: name || "Template",
+      message: message || "",
+      gif_urls: Array.isArray(gifUrls) ? gifUrls : [],
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      // Update existing
+      const updated = await updateRows("bulk_templates", "id", id, payload);
+      return normalizeBulkTemplate(updated[0] || { id, ...payload });
+    }
+
+    return normalizeBulkTemplate(await insertRow("bulk_templates", payload));
+  }
+
+  async function deleteBulkTemplate(id) {
+    if (!id) return;
+    const columns = await detectColumns("bulk_templates");
+    if (!columns.length) return;
+
+    const { error } = await supabase.from("bulk_templates").delete().eq("id", id);
+    if (error) {
+      logger.error("Failed to delete bulk template", error);
+      throw error;
+    }
+  }
+
+  // ─── Bulk Template History ────────────────────────────────────────────────
+
+  function normalizeBulkTemplateHistory(row = {}) {
+    return {
+      id: row.id || null,
+      slackId: row.slack_id || null,
+      type: row.type || null,
+      lastTemplateId: row.last_template_id || null,
+      lastGifIndex: row.last_gif_index === null || row.last_gif_index === undefined ? null : Number(row.last_gif_index),
+    };
+  }
+
+  async function getBulkTemplateHistory(slackId, type) {
+    const columns = await detectColumns("bulk_template_history");
+    if (!columns.length) return null;
+
+    const { data, error } = await supabase
+      .from("bulk_template_history")
+      .select("*")
+      .eq("slack_id", slackId)
+      .eq("type", type)
+      .limit(1);
+
+    if (error) {
+      logger.error("Supabase getBulkTemplateHistory failed", error);
+      throw error;
+    }
+
+    return data?.[0] ? normalizeBulkTemplateHistory(data[0]) : null;
+  }
+
+  async function saveBulkTemplateHistory({ slackId, type, lastTemplateId, lastGifIndex }) {
+    const columns = await detectColumns("bulk_template_history");
+    if (!columns.length) return;
+
+    const existing = await getBulkTemplateHistory(slackId, type);
+    const payload = {
+      workspace_id: defaultWorkspaceId(),
+      slack_id: slackId,
+      type,
+      last_template_id: lastTemplateId,
+      last_gif_index: lastGifIndex,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      const rows = await supabase
+        .from("bulk_template_history")
+        .update(await filterPayload("bulk_template_history", payload))
+        .eq("slack_id", slackId)
+        .eq("type", type)
+        .select();
+
+      if (rows.error) {
+        logger.error("Supabase saveBulkTemplateHistory update failed", rows.error);
+        throw rows.error;
+      }
+      return normalizeBulkTemplateHistory(rows.data?.[0] || existing);
+    }
+
+    return normalizeBulkTemplateHistory(await insertRow("bulk_template_history", payload));
+  }
+
   return {
     detectColumns,
     supportsColumn,
@@ -1311,6 +1463,12 @@ function createDbHelpers({ logger = console } = {}) {
     listEventOverrides,
     saveEventOverride,
     deleteEventOverride,
+    listBulkTemplates,
+    getBulkTemplate,
+    saveBulkTemplate,
+    deleteBulkTemplate,
+    getBulkTemplateHistory,
+    saveBulkTemplateHistory,
   };
 }
 

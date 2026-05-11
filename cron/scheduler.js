@@ -56,7 +56,7 @@ const DEFAULT_MESSAGES = {
   },
 };
 
-function createScheduler({ app, db, slack, logger = console }) {
+function createScheduler({ app, db, slack, manageTemplates = null, logger = console }) {
   const sentCache = new Map();
   const circuitBreaker = {
     consecutiveFailures: 0,
@@ -156,6 +156,26 @@ function createScheduler({ app, db, slack, logger = console }) {
   }
 
   async function chooseMessageAndGif({ slackId, type, style }) {
+    // 1. Try bulk template library (smart non-repeat randomization)
+    if (manageTemplates) {
+      try {
+        const bulk = await manageTemplates.chooseBulkTemplateForEvent({ slackId, type });
+        if (bulk) {
+          return {
+            messageIndex: null,
+            gifIndex: bulk.gifIndex,
+            messageTemplate: bulk.messageTemplate,
+            introText: "",
+            gifUrl: bulk.gifUrl || null,
+            isDbTemplate: true,
+          };
+        }
+      } catch (bulkErr) {
+        logger.warn("Bulk template selection failed, falling back to single template", bulkErr);
+      }
+    }
+
+    // 2. Try single saved template (Templates button)
     const dbTemplate = await db.getTemplate(type);
     if (dbTemplate?.message) {
       const gifUrls = dbTemplate.gifUrls || [];
@@ -170,6 +190,7 @@ function createScheduler({ app, db, slack, logger = console }) {
       };
     }
 
+    // 3. Fall back to hardcoded defaults with history-based non-repeat
     const normalizedStyle = normalizeStyle(style);
     const messagePool = DEFAULT_MESSAGES[normalizedStyle]?.[type] || DEFAULT_MESSAGES.fun[type];
     const gifPool = DEFAULT_GIFS[type] || [];
