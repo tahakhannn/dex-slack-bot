@@ -220,7 +220,8 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           return;
         }
 
-        const channelId = action?.value || process.env.DEFAULT_CHANNEL_ID || null;
+        const homeState = home.getState(body.user.id);
+        const channelId = action?.value || homeState.selectedChannelId || process.env.DEFAULT_CHANNEL_ID || null;
         const settings = await db.getChannelSettings(channelId);
         const includeChannelPicker = !action?.value;
 
