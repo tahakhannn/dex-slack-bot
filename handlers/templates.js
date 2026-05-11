@@ -34,40 +34,40 @@ function createTemplatesModule({ db, home, logger = console }) {
       type: "modal",
       callback_id: "save_templates_modal",
       title: { type: "plain_text", text: "✍️ Templates" },
-      submit: { type: "plain_text", text: "Save" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "✍️ Message templates" },
+          text: { type: "plain_text", text: "✍️ Default Templates" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "Adjust the celebration intro, cheer messages, and GIF pools.\nSupported variables: `<@USER>`, `{ANNIV_YEARS}`.",
+              text: "Configure the default celebration intro, cheer messages, and GIF pools used when no bulk template is available.\nVariables: `<@USER>`, `{ANNIV_YEARS}` · Format: `*bold*` `_italic_` `~strike~`",
             },
           ],
         },
         { type: "divider" },
         {
           type: "header",
-          text: { type: "plain_text", text: "📣 Intro line" },
+          text: { type: "plain_text", text: "📣 Intro Line" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "The opening line shown at the top of every celebration message.",
+              text: "The opening line shown at the top of every celebration message posted by Dex.",
             },
           ],
         },
         {
           type: "input",
           block_id: "intro_text",
-          label: { type: "plain_text", text: "Intro text" },
+          label: { type: "plain_text", text: "✏️ Intro text" },
           element: {
             type: "plain_text_input",
             action_id: "value",
@@ -77,21 +77,21 @@ function createTemplatesModule({ db, home, logger = console }) {
         { type: "divider" },
         {
           type: "header",
-          text: { type: "plain_text", text: "🎂 Birthday template" },
+          text: { type: "plain_text", text: "🎂 Birthday Template" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "The cheer line shown below the birthday details.\nUse `<@USER>` to mention. Format: `*bold*` `_italic_` `~strike~`.",
+              text: "The cheer line shown below the birthday details. Use `<@USER>` to mention the celebrant.",
             },
           ],
         },
         {
           type: "input",
           block_id: "birthday_message",
-          label: { type: "plain_text", text: "Cheer message" },
+          label: { type: "plain_text", text: "🎉 Cheer message" },
           element: {
             type: "plain_text_input",
             action_id: "value",
@@ -103,32 +103,33 @@ function createTemplatesModule({ db, home, logger = console }) {
           type: "input",
           block_id: "birthday_gifs",
           optional: true,
-          label: { type: "plain_text", text: "GIF URLs (one per line)" },
+          label: { type: "plain_text", text: "🎬 GIF URLs (one per line)" },
           element: {
             type: "plain_text_input",
             action_id: "value",
             multiline: true,
             initial_value: (birthday.gifUrls || []).join("\n"),
+            placeholder: { type: "plain_text", text: "https://media.giphy.com/media/.../giphy.gif" },
           },
         },
         { type: "divider" },
         {
           type: "header",
-          text: { type: "plain_text", text: "💼 Anniversary template" },
+          text: { type: "plain_text", text: "💼 Anniversary Template" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "The cheer line shown below the anniversary details.\nUse `<@USER>`, `{ANNIV_YEARS}`. Format: `*bold*` `_italic_` `~strike~`.",
+              text: "The cheer line shown below the anniversary details. Use `<@USER>` and `{ANNIV_YEARS}` for dynamic values.",
             },
           ],
         },
         {
           type: "input",
           block_id: "anniversary_message",
-          label: { type: "plain_text", text: "Cheer message" },
+          label: { type: "plain_text", text: "🎉 Cheer message" },
           element: {
             type: "plain_text_input",
             action_id: "value",
@@ -140,13 +141,24 @@ function createTemplatesModule({ db, home, logger = console }) {
           type: "input",
           block_id: "anniversary_gifs",
           optional: true,
-          label: { type: "plain_text", text: "GIF URLs (one per line)" },
+          label: { type: "plain_text", text: "🎬 GIF URLs (one per line)" },
           element: {
             type: "plain_text_input",
             action_id: "value",
             multiline: true,
             initial_value: (anniversary.gifUrls || []).join("\n"),
+            placeholder: { type: "plain_text", text: "https://media.giphy.com/media/.../giphy.gif" },
           },
+        },
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 These are the *fallback* templates. If you have bulk templates in *📋 Manage Templates*, those are used first with smart rotation.",
+            },
+          ],
         },
       ],
     };

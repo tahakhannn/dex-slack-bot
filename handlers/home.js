@@ -51,21 +51,21 @@ function createHomeModule({ db, slack, logger = console }) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `⚠️ *Missing data for:*\n${listed}${remainder}`,
+        text: `⚠️ *Missing celebration data for:*\n${listed}${remainder}\n_Add their birthdays and anniversaries to start celebrating!_`,
       },
     };
   }
 
   function buildSettingsSummary(settings, allRecorded) {
     const lines = [
-      `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "No data yet"}`,
-      `⏰ *Post time:* ${settings.postTime || "No data yet"}`,
-      `🎉 *GIF:* ${settings.includeGif ? "Enabled" : "Disabled"}`,
-      `📣 *Mention settings:* ${settings.mentionChannel ? "@channel" : "celebrants only"}`,
+      `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
+      `⏰ *Post time:* ${settings.postTime || "_Not set_"}`,
+      `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
+      `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
 
     if (allRecorded) {
-      lines.push("✅ All birthdays/work anniversaries have been recorded");
+      lines.push("\n✅ All birthdays and work anniversaries have been recorded!");
     }
 
     return lines.join("\n");
@@ -152,25 +152,33 @@ function createHomeModule({ db, slack, logger = console }) {
     const templateGifs = template?.gifUrls || [];
     const messageValue = existingOverride?.customMessage || defaultMessage;
     const gifValue = existingOverride?.gifUrl || "";
+    const typeEmoji = event.type === "birthday" ? "🎂" : "💼";
+    const typeLabel = event.type === "birthday" ? "Birthday" : "Work Anniversary";
 
     const blocks = [
+      {
+        type: "header",
+        text: { type: "plain_text", text: `✏️ Edit Event` },
+      },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*${formatCelebrationDate(event.date, true)}*\n<@${event.userId}> • ${event.type} • ${channelName}`,
+          text: `${typeEmoji} *${typeLabel}* · *${formatCelebrationDate(event.date, true)}*\n👤 <@${event.userId}> · 📢 ${channelName}`,
         },
       },
+      { type: "divider" },
       {
         type: "input",
         block_id: "message",
         optional: true,
-        label: { type: "plain_text", text: "Cheer message" },
+        label: { type: "plain_text", text: "🎉 Cheer message" },
         element: {
           type: "plain_text_input",
           action_id: "value",
           multiline: true,
           ...(messageValue ? { initial_value: messageValue } : {}),
+          placeholder: { type: "plain_text", text: "Write a custom celebration message…" },
         },
       },
       {
@@ -178,7 +186,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: "Variables: `<@USER>`, `{ANNIV_YEARS}`\nFormat: `*bold*` `_italic_` `~strike~`",
+            text: "Variables: `<@USER>`, `{ANNIV_YEARS}` · Format: `*bold*` `_italic_` `~strike~`",
           },
         ],
       },
@@ -186,11 +194,12 @@ function createHomeModule({ db, slack, logger = console }) {
         type: "input",
         block_id: "gif",
         optional: true,
-        label: { type: "plain_text", text: "GIF URL" },
+        label: { type: "plain_text", text: "🎬 GIF URL" },
         element: {
           type: "plain_text_input",
           action_id: "value",
           ...(gifValue ? { initial_value: gifValue } : {}),
+          placeholder: { type: "plain_text", text: "https://media.giphy.com/media/.../giphy.gif" },
         },
       },
     ];
@@ -201,27 +210,30 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: `*GIFs from template:*\n${templateGifs.map((url, i) => `${i + 1}. ${url}`).join("\n")}`,
+            text: `*🎬 GIFs from template:*\n${templateGifs.map((url, i) => `${i + 1}. ${url}`).join("\n")}`,
           },
         ],
       });
     }
 
-    blocks.push({
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: "Leave both fields blank to reset this event to the default template.",
-        },
-      ],
-    });
+    blocks.push(
+      { type: "divider" },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "💡 Leave both fields blank to reset this event back to the default template.",
+          },
+        ],
+      },
+    );
 
     return {
       type: "modal",
       callback_id: "save_event_override_modal",
-      title: { type: "plain_text", text: "✏️ Edit event" },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: "✏️ Edit Event" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       private_metadata: JSON.stringify({
         eventId: buildEventId({
@@ -255,12 +267,22 @@ function createHomeModule({ db, slack, logger = console }) {
         type: "header",
         text: { type: "plain_text", text: "👁️ Preview Events" },
       },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "See how upcoming celebrations will look when posted. Click the 3-dot menu to customize individual events.",
+          },
+        ],
+      },
+      { type: "divider" },
     ];
 
     if (!events.length) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "No data yet" }],
+        elements: [{ type: "mrkdwn", text: "🏖️ _No upcoming events to preview — check back later!_" }],
       });
     } else {
       for (const event of events.slice(0, 8)) {
@@ -292,7 +314,7 @@ function createHomeModule({ db, slack, logger = console }) {
               action_id: "event_actions",
               options: [
                 {
-                  text: { type: "plain_text", text: "✏️ Edit event" },
+                  text: { type: "plain_text", text: "✏️ Edit Event" },
                   value: JSON.stringify({
                     eventId,
                     slackId: event.userId,
@@ -309,7 +331,7 @@ function createHomeModule({ db, slack, logger = console }) {
             elements: [
               {
                 type: "mrkdwn",
-                text: override ? "✏️ Customized" : "Default template",
+                text: override ? "✏️ Customized" : "📝 Default template",
               },
             ],
           },
@@ -361,8 +383,18 @@ function createHomeModule({ db, slack, logger = console }) {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "You do not have access to this application. If you believe this is a mistake, please contact your workspace administrator.",
+              text: "You don't have permission to access Dex administration. If you believe this is a mistake, please reach out to your workspace administrator.",
             },
+          },
+          { type: "divider" },
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: "💡 Workspace admins can grant you access via *🔒 Manage Admins*.",
+              },
+            ],
           },
         ],
       };
@@ -392,7 +424,7 @@ function createHomeModule({ db, slack, logger = console }) {
         { type: "divider" },
         {
           type: "header",
-          text: { type: "plain_text", text: "👥 Admin Actions" },
+          text: { type: "plain_text", text: "⚡ Admin Actions" },
         },
         {
           type: "actions",
@@ -409,7 +441,7 @@ function createHomeModule({ db, slack, logger = console }) {
             },
             {
               type: "button",
-              text: { type: "plain_text", text: "👥 Manage Admins" },
+              text: { type: "plain_text", text: "🔒 Manage Admins" },
               action_id: "open_manage_admins_modal",
             },
           ],
@@ -458,29 +490,29 @@ function createHomeModule({ db, slack, logger = console }) {
     }
 
     const reminderSummary = reminders.length
-      ? reminders.map((reminder) => `${reminder.daysBefore} day(s) • ${reminder.scope}`).join(", ")
-      : "No data yet";
+      ? reminders.map((reminder) => `⏰ ${reminder.daysBefore} day(s) · ${reminder.scope}`).join("\n")
+      : "_No reminders configured yet_";
 
     blocks.push(
       { type: "divider" },
       {
         type: "header",
-        text: { type: "plain_text", text: "Hey buddy 👋" },
+        text: { type: "plain_text", text: "👋 Your Profile" },
       },
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: "Enter your birthdate and work anniversary date so we can celebrate the right moments together.",
+            text: "Enter your birthdate and work anniversary so we can celebrate the right moments together. 🥳",
           },
         ],
       },
       {
         type: "context",
         elements: [
-          { type: "mrkdwn", text: buildDateSummary("Birthday", profile.birthday) },
-          { type: "mrkdwn", text: buildDateSummary("Anniversary", profile.anniversary) },
+          { type: "mrkdwn", text: buildDateSummary("🎂 Birthday", profile.birthday) },
+          { type: "mrkdwn", text: buildDateSummary("💼 Anniversary", profile.anniversary) },
         ],
       },
       {
@@ -488,7 +520,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "button",
-            text: { type: "plain_text", text: "Update Profile" },
+            text: { type: "plain_text", text: "👤 Update Profile" },
             action_id: "open_profile_modal",
           },
         ],
@@ -524,7 +556,7 @@ function createHomeModule({ db, slack, logger = console }) {
           {
             type: "users_select",
             action_id: "upcoming_events_search",
-            placeholder: { type: "plain_text", text: "Search teammates" },
+            placeholder: { type: "plain_text", text: "🔍 Search teammates…" },
             ...(homeState.filterUserId ? { initial_user: homeState.filterUserId } : {}),
           },
           ...(homeState.filterUserId
@@ -543,7 +575,7 @@ function createHomeModule({ db, slack, logger = console }) {
     if (!upcoming.items.length) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "No data yet" }],
+        elements: [{ type: "mrkdwn", text: "🏖️ _No upcoming events to show — check back later!_" }],
       });
     } else {
       for (const event of upcoming.items) {
@@ -582,7 +614,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: `Using ${settings.timezone || SETTINGS_DEFAULTS.timezone} at ${settings.postTime}`,
+            text: `🌍 Timezone: ${settings.timezone || SETTINGS_DEFAULTS.timezone} · ⏰ Post time: ${settings.postTime}`,
           },
         ],
       },
@@ -655,7 +687,21 @@ function createHomeModule({ db, slack, logger = console }) {
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "📊 Analytics" },
+                text: { type: "plain_text", text: "📊 Dex Analytics" },
+              },
+              {
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: "A snapshot of your team's celebration data and this month's activity.",
+                  },
+                ],
+              },
+              { type: "divider" },
+              {
+                type: "header",
+                text: { type: "plain_text", text: "👥 Team Overview" },
               },
               {
                 type: "section",
@@ -665,24 +711,36 @@ function createHomeModule({ db, slack, logger = console }) {
                     `👥 *Total employees:* ${analytics.totalEmployees}`,
                     `🎂 *Birthdays stored:* ${analytics.totalBirthdays}`,
                     `💼 *Anniversaries stored:* ${analytics.totalAnniversaries}`,
-                    `⏰ *Reminders count:* ${analytics.remindersCount}`,
-                    "",
-                    `📊 *This month:*`,
-                    `• ${automation.birthdaysSentThisMonth} birthdays celebrated`,
-                    `• ${automation.anniversariesSentThisMonth} anniversaries celebrated`,
-                    `• ${automation.upcomingEventsCount} events upcoming today`,
+                    `⏰ *Active reminders:* ${analytics.remindersCount}`,
                   ].join("\n"),
                 },
+              },
+              { type: "divider" },
+              {
+                type: "header",
+                text: { type: "plain_text", text: "📅 This Month" },
               },
               {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: "Review everyone who has opted out of birthday or anniversary celebrations.",
+                  text: [
+                    `🎂 *Birthdays celebrated:* ${automation.birthdaysSentThisMonth}`,
+                    `💼 *Anniversaries celebrated:* ${automation.anniversariesSentThisMonth}`,
+                    `⏳ *Events pending today:* ${automation.upcomingEventsCount}`,
+                  ].join("\n"),
+                },
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: "🚫 *Opted-out Users*\nReview employees who have opted out of birthday or anniversary celebrations.",
                 },
                 accessory: {
                   type: "button",
-                  text: { type: "plain_text", text: "🚫 View users" },
+                  text: { type: "plain_text", text: "🚫 View Opt-outs" },
                   action_id: "view_opted_out_users",
                 },
               },
@@ -706,30 +764,40 @@ function createHomeModule({ db, slack, logger = console }) {
         const blocks = [
           {
             type: "header",
-            text: { type: "plain_text", text: "🚫 Opted-out users" },
+            text: { type: "plain_text", text: "🚫 Opted-out Users" },
           },
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: "Employees who have chosen to skip birthday or anniversary celebrations.",
+              },
+            ],
+          },
+          { type: "divider" },
         ];
 
         if (!optedOutUsers.length) {
           blocks.push({
             type: "context",
-            elements: [{ type: "mrkdwn", text: "✅ No users have opted out" }],
+            elements: [{ type: "mrkdwn", text: "✅ _No users have opted out — everyone's celebrating!_" }],
           });
         } else {
           for (const user of optedOutUsers) {
             const labels = [];
             if (user.birthdayOptOut) {
-              labels.push("🎂 birthday");
+              labels.push("🎂 Birthday");
             }
             if (user.anniversaryOptOut) {
-              labels.push("💼 anniversary");
+              labels.push("💼 Anniversary");
             }
 
             blocks.push({
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `<@${user.slackId}> • ${labels.join(" • ")}`,
+                text: `<@${user.slackId}> · ${labels.join(" · ")}`,
               },
             });
           }

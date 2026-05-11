@@ -323,7 +323,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Import, export, or reset employee celebration data for Dex.",
+              text: "Import, export, or reset employee celebration data. Use spreadsheets to bulk-manage your team.",
             },
           ],
         },
@@ -332,11 +332,11 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "*Import CSV / XLSX*\nUpload a spreadsheet, paste CSV, or provide a file URL.",
+            text: "📥 *Import CSV / XLSX*\nUpload a spreadsheet, paste CSV text, or provide a file URL to bulk-import employees.",
           },
           accessory: {
             type: "button",
-            text: { type: "plain_text", text: "📥 Import data" },
+            text: { type: "plain_text", text: "📥 Import" },
             action_id: "open_data_import_modal",
             style: "primary",
           },
@@ -346,11 +346,11 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "*Export CSV*\nGenerate a full employee export with names, birthdays, anniversaries, and email.",
+            text: "📤 *Export CSV*\nDownload a full employee export with names, birthdays, anniversaries, and email addresses.",
           },
           accessory: {
             type: "button",
-            text: { type: "plain_text", text: "📤 Export CSV" },
+            text: { type: "plain_text", text: "📤 Export" },
             action_id: "export_csv_data",
           },
         },
@@ -359,11 +359,11 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "*Reset data*\nRemove all employee lifecycle data, overrides, and sent-event history.",
+            text: "🗑️ *Reset All Data*\nPermanently remove all employee records, event overrides, custom messages, and sent-event history.",
           },
           accessory: {
             type: "button",
-            text: { type: "plain_text", text: "🗑️ Reset data" },
+            text: { type: "plain_text", text: "🗑️ Reset" },
             action_id: "open_reset_data_modal",
             style: "danger",
           },
@@ -376,28 +376,29 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "data_import_submit",
-      title: { type: "plain_text", text: "📥 Import data" },
-      submit: { type: "plain_text", text: "Import" },
+      title: { type: "plain_text", text: "📥 Import Data" },
+      submit: { type: "plain_text", text: "📥 Import" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "📥 Import employee data" },
+          text: { type: "plain_text", text: "📥 Import Employee Data" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "Supported columns: `slack_id`, `name`, `email`, `birth_day`, `birth_month`, `anniv_day`, `anniv_month`, `anniv_year`, plus flexible aliases like `birthday`, `anniversary_date`, and `full_name`.",
+              text: "Upload a file, paste CSV text, or provide a URL. Dex auto-detects columns.\n*Supported:* `slack_id` · `email` · `name` · `birthday` · `anniversary` · `birth_day` · `birth_month` · `anniv_day` · `anniv_month` · `anniv_year`",
             },
           ],
         },
+        { type: "divider" },
         {
           type: "input",
           block_id: "upload_file",
           optional: true,
-          label: { type: "plain_text", text: "Upload CSV or XLSX" },
+          label: { type: "plain_text", text: "📎 Upload CSV or XLSX" },
           element: {
             type: "file_input",
             action_id: "csv_file",
@@ -409,23 +410,34 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "input",
           block_id: "csv_content",
           optional: true,
-          label: { type: "plain_text", text: "Paste CSV content" },
+          label: { type: "plain_text", text: "📝 Paste CSV content" },
           element: {
             type: "plain_text_input",
             multiline: true,
             action_id: "value",
+            placeholder: { type: "plain_text", text: "slack_id,name,birthday,anniversary\nU123,Jane,1994-08-12,2020-03-01" },
           },
         },
         {
           type: "input",
           block_id: "file_url",
           optional: true,
-          label: { type: "plain_text", text: "Or provide a file URL" },
+          label: { type: "plain_text", text: "🔗 Or provide a file URL" },
           element: {
             type: "plain_text_input",
             action_id: "value",
-            placeholder: { type: "plain_text", text: "https://..." },
+            placeholder: { type: "plain_text", text: "https://example.com/employees.csv" },
           },
+        },
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 You only need *one* of the three input methods above. Existing employees will be updated, new ones added.",
+            },
+          ],
         },
       ],
     };
@@ -435,28 +447,39 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "reset_data_submit",
-      title: { type: "plain_text", text: "Reset data" },
-      submit: { type: "plain_text", text: "Reset" },
+      title: { type: "plain_text", text: "⚠️ Reset Data" },
+      submit: { type: "plain_text", text: "🗑️ Reset" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "🗑️ Reset employee data" },
+          text: { type: "plain_text", text: "⚠️ Reset All Employee Data" },
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "🚨 *This action is irreversible.* All of the following will be permanently deleted:",
+            },
+          ],
         },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "This removes employee records, user profiles, event overrides, custom messages, and sent-event history. Type `RESET` to continue.",
+            text: "• 👥 Employee records\n• 👤 User profiles\n• ✏️ Event overrides\n• 💬 Custom messages\n• 📨 Sent-event history",
           },
         },
+        { type: "divider" },
         {
           type: "input",
           block_id: "confirm_reset",
-          label: { type: "plain_text", text: "Confirmation" },
+          label: { type: "plain_text", text: "✍️ Type RESET to confirm" },
           element: {
             type: "plain_text_input",
             action_id: "value",
+            placeholder: { type: "plain_text", text: "RESET" },
           },
         },
       ],
@@ -467,7 +490,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
     const dmChannelId = await slack.openDirectMessage(client, userId);
     await client.chat.postMessage({
       channel: dmChannelId,
-      text: "Import complete",
+      text: "✅ Import complete",
       blocks: [
         {
           type: "header",
@@ -478,9 +501,11 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           text: {
             type: "mrkdwn",
             text: [
-              `*Total rows:* ${summary.total}`,
-              `*Imported:* ${summary.imported}`,
-              `*Skipped:* ${summary.skipped}`,
+              `📊 *Import Summary*`,
+              "",
+              `📄 *Total rows:* ${summary.total}`,
+              `✅ *Imported:* ${summary.imported}`,
+              `⏭️ *Skipped:* ${summary.skipped}`,
             ].join("\n"),
           },
         },

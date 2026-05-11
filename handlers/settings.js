@@ -55,32 +55,35 @@ function createSettingsModule({ db, slack, home, logger = console }) {
     const blocks = [
       {
         type: "header",
-        text: { type: "plain_text", text: "🎂 Settings (1/2)" },
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: settings.channelId ? `<#${settings.channelId}>` : "No channel selected yet",
-        },
+        text: { type: "plain_text", text: "⚙️ Channel Settings (1/2)" },
       },
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: "Adjust posting time, timezone, and GIF options on the next page.",
+            text: "Configure which channel Dex posts to and what events to celebrate. Fine-tune timing and preferences on the next page.",
           },
         ],
       },
       { type: "divider" },
     ];
 
+    if (settings.channelId) {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `📢 *Current channel:* <#${settings.channelId}>`,
+        },
+      });
+    }
+
     if (includeChannelPicker) {
       blocks.push({
         type: "input",
         block_id: "channel_id",
-        label: { type: "plain_text", text: "Choose a channel" },
+        label: { type: "plain_text", text: "📢 Choose a channel" },
         element: {
           type: "conversations_select",
           action_id: "value",
@@ -94,16 +97,21 @@ function createSettingsModule({ db, slack, home, logger = console }) {
     }
 
     blocks.push(
+      { type: "divider" },
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🎯 Celebration Scope" },
+      },
       staticSelectInput({
         blockId: "who_to_celebrate",
-        label: "Who should be celebrated?",
+        label: "👥 Who should be celebrated?",
         options: [
           {
-            text: { type: "plain_text", text: "All members" },
+            text: { type: "plain_text", text: "🌍 All members" },
             value: "everyone",
           },
           {
-            text: { type: "plain_text", text: "No members" },
+            text: { type: "plain_text", text: "🚫 No members" },
             value: "none",
           },
         ],
@@ -112,13 +120,13 @@ function createSettingsModule({ db, slack, home, logger = console }) {
       }),
       checkboxInput({
         blockId: "include_birthdays",
-        label: "Birthdays",
+        label: "🎂 Birthdays",
         optionText: "Celebrate birthdays",
         initialChecked: settings.includeBirthdays,
       }),
       checkboxInput({
         blockId: "include_anniversaries",
-        label: "Work anniversaries",
+        label: "💼 Work Anniversaries",
         optionText: "Celebrate work anniversaries",
         initialChecked: settings.includeAnniversaries,
       })
@@ -127,8 +135,8 @@ function createSettingsModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "settings_step_1_submit",
-      title: { type: "plain_text", text: "🎂 Settings" },
-      submit: { type: "plain_text", text: "Next" },
+      title: { type: "plain_text", text: "⚙️ Settings" },
+      submit: { type: "plain_text", text: "Next →" },
       close: { type: "plain_text", text: "Cancel" },
       private_metadata: JSON.stringify({
         channelId: settings.channelId || null,
@@ -142,19 +150,29 @@ function createSettingsModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "settings_step_2_submit",
-      title: { type: "plain_text", text: "🎂 Settings" },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: "⚙️ Settings" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       private_metadata: JSON.stringify(stepOne),
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "🎂 Settings (2/2)" },
+          text: { type: "plain_text", text: "⚙️ Channel Settings (2/2)" },
         },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "Set the posting schedule, timezone, and message preferences for this channel.",
+            },
+          ],
+        },
+        { type: "divider" },
         {
           type: "input",
           block_id: "post_time",
-          label: { type: "plain_text", text: "Post time" },
+          label: { type: "plain_text", text: "⏰ Post time" },
           element: {
             type: "timepicker",
             action_id: "value",
@@ -164,7 +182,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
         },
         staticSelectInput({
           blockId: "timezone",
-          label: "Timezone",
+          label: "🌍 Timezone",
           options: TIMEZONE_OPTIONS.map((tz) => ({
             text: { type: "plain_text", text: tz.label },
             value: tz.value,
@@ -172,16 +190,21 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           initialValue: stepOne.timezone || SETTINGS_DEFAULTS.timezone,
           placeholder: "Choose a timezone",
         }),
+        { type: "divider" },
+        {
+          type: "header",
+          text: { type: "plain_text", text: "🎨 Preferences" },
+        },
         checkboxInput({
           blockId: "include_gif",
-          label: "GIF",
-          optionText: "Include GIF",
+          label: "🎬 GIF",
+          optionText: "Include a celebratory GIF with each message",
           initialChecked: stepOne.includeGif,
         }),
         checkboxInput({
           blockId: "mention_channel",
-          label: "Mention",
-          optionText: "Include @channel mention",
+          label: "📣 Mention",
+          optionText: "Include @channel mention to notify everyone",
           initialChecked: stepOne.mentionChannel,
         }),
       ],

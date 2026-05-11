@@ -19,7 +19,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
 
   function summarizeDate(prefix, dateParts) {
     if (!dateParts?.day || !dateParts?.month) {
-      return `${prefix} Not set`;
+      return `${prefix} _Not set_`;
     }
     return `${prefix} ${formatDateParts(dateParts)}`;
   }
@@ -29,26 +29,32 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
       type: "modal",
       callback_id: "add_employee_select_submit",
       private_metadata: JSON.stringify({ employeesViewId }),
-      title: { type: "plain_text", text: "Add Employee" },
-      submit: { type: "plain_text", text: "Next" },
+      title: { type: "plain_text", text: "➕ Add Employee" },
+      submit: { type: "plain_text", text: "Next →" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "👥 Add employee" },
+          text: { type: "plain_text", text: "➕ Add Employee" },
         },
         {
           type: "context",
-          elements: [{ type: "mrkdwn", text: "Pick a teammate to add to Dex." }],
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "Pick a Slack teammate to add to Dex. You'll set their birthday and work anniversary on the next screen.",
+            },
+          ],
         },
+        { type: "divider" },
         {
           type: "input",
           block_id: "employee_user",
-          label: { type: "plain_text", text: "Employee" },
+          label: { type: "plain_text", text: "👤 Employee" },
           element: {
             type: "users_select",
             action_id: "value",
-            placeholder: { type: "plain_text", text: "Pick a Slack teammate" },
+            placeholder: { type: "plain_text", text: "Search for a teammate…" },
           },
         },
       ],
@@ -56,16 +62,17 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
   }
 
   function buildEmployeeEditorModal({ userId, employee, callbackId, title, employeesViewId = null }) {
+    const isEdit = title === "Edit Employee";
     const initialOptions = [];
     if (employee?.birthdayOptOut) {
       initialOptions.push({
-        text: { type: "plain_text", text: "Opt out of birthday celebrations" },
+        text: { type: "plain_text", text: "🎂 Opt out of birthday celebrations" },
         value: "birthday",
       });
     }
     if (employee?.anniversaryOptOut) {
       initialOptions.push({
-        text: { type: "plain_text", text: "Opt out of anniversary celebrations" },
+        text: { type: "plain_text", text: "💼 Opt out of anniversary celebrations" },
         value: "anniversary",
       });
     }
@@ -74,13 +81,13 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
       type: "modal",
       callback_id: callbackId,
       private_metadata: JSON.stringify({ userId, employeesViewId }),
-      title: { type: "plain_text", text: title },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: isEdit ? "✏️ Edit Employee" : "➕ Add Employee" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: title === "Edit Employee" ? "👥 Edit employee" : "👥 Add employee" },
+          text: { type: "plain_text", text: isEdit ? "✏️ Edit Employee" : "➕ Add Employee" },
         },
         {
           type: "section",
@@ -89,31 +96,33 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
             text: `Set celebration details for <@${userId}>.`,
           },
         },
+        { type: "divider" },
         ...buildDateInputBlocks({
           prefix: "birthday",
-          label: "Birthday",
+          label: "🎂 Birthday",
           initialDate: employee?.birthday,
         }),
         ...buildDateInputBlocks({
           prefix: "anniversary",
-          label: "Anniversary",
+          label: "💼 Work Anniversary",
           initialDate: employee?.anniversary,
         }),
+        { type: "divider" },
         {
           type: "input",
           block_id: "opt_out",
           optional: true,
-          label: { type: "plain_text", text: "Preferences" },
+          label: { type: "plain_text", text: "🚫 Opt-out Preferences" },
           element: {
             type: "checkboxes",
             action_id: "value",
             options: [
               {
-                text: { type: "plain_text", text: "Opt out of birthday celebrations" },
+                text: { type: "plain_text", text: "🎂 Opt out of birthday celebrations" },
                 value: "birthday",
               },
               {
-                text: { type: "plain_text", text: "Opt out of anniversary celebrations" },
+                text: { type: "plain_text", text: "💼 Opt out of anniversary celebrations" },
                 value: "anniversary",
               },
             ],
@@ -133,11 +142,16 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     const blocks = [
       {
         type: "header",
-        text: { type: "plain_text", text: "👥 Employees" },
+        text: { type: "plain_text", text: "👥 Manage Employees" },
       },
       {
         type: "context",
-        elements: [{ type: "mrkdwn", text: "View, edit, or delete celebration records." }],
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `View, edit, or clear celebration data for your team. *${employees.length}* employee(s) tracked.`,
+          },
+        ],
       },
       {
         type: "actions",
@@ -145,19 +159,20 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           {
             type: "users_select",
             action_id: "employee_search",
-            placeholder: { type: "plain_text", text: "🔍 Search employees..." },
+            placeholder: { type: "plain_text", text: "🔍 Search employees…" },
             ...(filterSlackId ? { initial_user: filterSlackId } : {}),
           },
           {
             type: "button",
-            text: { type: "plain_text", text: "Add Employee" },
+            text: { type: "plain_text", text: "➕ Add Employee" },
             action_id: "open_add_employee_modal",
+            style: "primary",
           },
           ...(filterSlackId
             ? [
                 {
                   type: "button",
-                  text: { type: "plain_text", text: "Clear" },
+                  text: { type: "plain_text", text: "✖️ Clear Filter" },
                   action_id: "employee_search_clear",
                 },
               ]
@@ -170,30 +185,42 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     if (!filtered.length) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: filterSlackId ? "No matching employees" : "No data yet" }],
+        elements: [
+          {
+            type: "mrkdwn",
+            text: filterSlackId
+              ? "🔍 _No matching employees found for this filter._"
+              : "📭 _No employees added yet — use the button above to get started._",
+          },
+        ],
       });
     } else {
       for (const employee of filtered) {
+        const optOuts = [];
+        if (employee.birthdayOptOut) optOuts.push("🎂 opted out");
+        if (employee.anniversaryOptOut) optOuts.push("💼 opted out");
+        const optOutLine = optOuts.length ? `\n🚫 ${optOuts.join(" · ")}` : "";
+
         blocks.push(
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*<@${employee.slackId}>*\n${summarizeDate("🎂", employee.birthday)}\n${summarizeDate(
+              text: `*<@${employee.slackId}>*\n${summarizeDate("🎂", employee.birthday)}  ·  ${summarizeDate(
                 "💼",
                 employee.anniversary,
-              )}`,
+              )}${optOutLine}`,
             },
             accessory: {
               type: "overflow",
               action_id: "employee_row_actions",
               options: [
                 {
-                  text: { type: "plain_text", text: "Edit" },
+                  text: { type: "plain_text", text: "✏️ Edit" },
                   value: JSON.stringify({ action: "edit", slackId: employee.slackId }),
                 },
                 {
-                  text: { type: "plain_text", text: "Clear Data" },
+                  text: { type: "plain_text", text: "🗑️ Clear Data" },
                   value: JSON.stringify({ action: "clear", slackId: employee.slackId }),
                 },
               ],
@@ -207,7 +234,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "employees_modal",
-      title: { type: "plain_text", text: "Employees" },
+      title: { type: "plain_text", text: "👥 Employees" },
       close: { type: "plain_text", text: "Close" },
       blocks,
     };
@@ -217,35 +244,43 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "manage_admins_submit",
-      title: { type: "plain_text", text: "👥 Manage admins" },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: "🔒 Manage Admins" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: "Select or remove users with admin rights (optional)",
-          },
-        },
-        {
-          type: "input",
-          block_id: "admins",
-          optional: true,
-          label: { type: "plain_text", text: "Admins" },
-          element: {
-            type: "multi_users_select",
-            action_id: "admins_select",
-            placeholder: { type: "plain_text", text: "Select admins" },
-            ...(adminIds.length ? { initial_users: adminIds } : {}),
-          },
+          type: "header",
+          text: { type: "plain_text", text: "🔒 Manage Admins" },
         },
         {
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: "Note: All workspace admins already possess admin rights.",
+              text: "Grant or revoke admin access to Dex. Admins can manage settings, employees, templates, and more.",
+            },
+          ],
+        },
+        { type: "divider" },
+        {
+          type: "input",
+          block_id: "admins",
+          optional: true,
+          label: { type: "plain_text", text: "👥 Admins" },
+          element: {
+            type: "multi_users_select",
+            action_id: "admins_select",
+            placeholder: { type: "plain_text", text: "Select admins…" },
+            ...(adminIds.length ? { initial_users: adminIds } : {}),
+          },
+        },
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 Slack workspace owners and admins automatically have admin access. Users added here get access even if they aren't workspace admins.",
             },
           ],
         },
@@ -257,31 +292,51 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
     return {
       type: "modal",
       callback_id: "import_dates_submit",
-      title: { type: "plain_text", text: "Import dates" },
-      submit: { type: "plain_text", text: "Import" },
+      title: { type: "plain_text", text: "📋 Import Dates" },
+      submit: { type: "plain_text", text: "📥 Import" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "📅 Import dates" },
+          text: { type: "plain_text", text: "📋 Quick Import" },
         },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "Paste one teammate per line using the format below. Birthday is column 2, anniversary is column 3.",
+            },
+          ],
+        },
+        { type: "divider" },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "Paste one teammate per line using `<@U123456>, DD-MM-YYYY, DD-MM-YYYY`.\nBirthday is column 2 and anniversary is column 3.",
+            text: "*Format:* `<@U123456>, DD-MM-YYYY, DD-MM-YYYY`",
           },
         },
         {
           type: "input",
           block_id: "import_blob",
-          label: { type: "plain_text", text: "Rows" },
+          label: { type: "plain_text", text: "📝 Rows" },
           element: {
             type: "plain_text_input",
             multiline: true,
             action_id: "value",
             placeholder: { type: "plain_text", text: "<@U123456>, 12-08-1994, 01-03-2020" },
           },
+        },
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 For bulk imports with more columns (email, name, etc.), use the *📥 Data Manager* instead.",
+            },
+          ],
         },
       ],
     };
@@ -474,12 +529,16 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           trigger_id: body.trigger_id,
           view: {
             type: "modal",
-            title: { type: "plain_text", text: "Billing" },
+            title: { type: "plain_text", text: "💳 Billing" },
             close: { type: "plain_text", text: "Close" },
             blocks: [
               {
+                type: "header",
+                text: { type: "plain_text", text: "💳 Billing" },
+              },
+              {
                 type: "context",
-                elements: [{ type: "mrkdwn", text: "No data yet" }],
+                elements: [{ type: "mrkdwn", text: "🏗️ _Billing management is coming soon. Stay tuned!_" }],
               },
             ],
           },

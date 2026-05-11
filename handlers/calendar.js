@@ -53,14 +53,14 @@ function createCalendarModule({ db, home, logger = console }) {
     const blocks = [
       {
         type: "header",
-        text: { type: "plain_text", text: `📅 Calendar — ${currentMonth.toFormat("LLLL yyyy")}` },
+        text: { type: "plain_text", text: `📅 ${currentMonth.toFormat("LLLL yyyy")}` },
       },
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: `Tracking ${channelId ? `<#${channelId}>` : "default channel"}`,
+            text: `Browse upcoming celebrations for ${channelId ? `<#${channelId}>` : "the default channel"}. Navigate months with the arrows below.`,
           },
         ],
       },
@@ -95,7 +95,7 @@ function createCalendarModule({ db, home, logger = console }) {
       const dayDate = DateTime.fromObject({ year, month, day });
       const prefix = dayDate.hasSame(today, "day") ? "👉 " : "";
       const lines = events.map((event) => {
-        const sentPrefix = event.isSent ? "✅ " : "";
+        const sentPrefix = event.isSent ? "✅ " : "⏳ ";
         if (event.type === "birthday") {
           return `${sentPrefix}🎂 <@${event.slackId}>`;
         }
@@ -114,7 +114,7 @@ function createCalendarModule({ db, home, logger = console }) {
     if (!hasEvents) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "No data yet" }],
+        elements: [{ type: "mrkdwn", text: "🏖️ _No celebrations this month — enjoy the quiet!_" }],
       });
     }
 
@@ -125,7 +125,7 @@ function createCalendarModule({ db, home, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: "✅ = sent • 🎂 = birthday • 💼 = anniversary • 👉 = today",
+            text: "✅ Sent · ⏳ Pending · 🎂 Birthday · 💼 Anniversary · 👉 Today",
           },
         ],
       },

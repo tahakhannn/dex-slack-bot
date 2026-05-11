@@ -6,9 +6,9 @@ function createRemindersModule({ db, home }) {
     const initialOptions = selectedDays
       .map((day) =>
         [
-          { text: { type: "plain_text", text: "1 day before" }, value: "1" },
-          { text: { type: "plain_text", text: "7 days before" }, value: "7" },
-          { text: { type: "plain_text", text: "14 days before" }, value: "14" },
+          { text: { type: "plain_text", text: "⏰ 1 day before" }, value: "1" },
+          { text: { type: "plain_text", text: "📅 7 days before" }, value: "7" },
+          { text: { type: "plain_text", text: "📆 14 days before" }, value: "14" },
         ].find((option) => option.value === day),
       )
       .filter(Boolean);
@@ -18,21 +18,36 @@ function createRemindersModule({ db, home }) {
       type: "modal",
       callback_id: "save_reminders_modal",
       private_metadata: JSON.stringify({ channelId }),
-      title: { type: "plain_text", text: "Create Reminder" },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: "⏰ Reminders" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
+          type: "header",
+          text: { type: "plain_text", text: "⏰ Create Reminder" },
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "Get notified before upcoming birthdays and work anniversaries so you never miss a celebration.",
+            },
+          ],
+        },
+        { type: "divider" },
+        {
           type: "input",
           block_id: "days_before",
-          label: { type: "plain_text", text: "When should reminders fire?" },
+          label: { type: "plain_text", text: "🔔 When should reminders fire?" },
           element: {
             type: "multi_static_select",
             action_id: "value",
+            placeholder: { type: "plain_text", text: "Select reminder offsets" },
             options: [
-              { text: { type: "plain_text", text: "1 day before" }, value: "1" },
-              { text: { type: "plain_text", text: "7 days before" }, value: "7" },
-              { text: { type: "plain_text", text: "14 days before" }, value: "14" },
+              { text: { type: "plain_text", text: "⏰ 1 day before" }, value: "1" },
+              { text: { type: "plain_text", text: "📅 7 days before" }, value: "7" },
+              { text: { type: "plain_text", text: "📆 14 days before" }, value: "14" },
             ],
             ...(initialOptions.length ? { initial_options: initialOptions } : {}),
           },
@@ -40,28 +55,38 @@ function createRemindersModule({ db, home }) {
         {
           type: "input",
           block_id: "scope",
-          label: { type: "plain_text", text: "Who should be notified?" },
+          label: { type: "plain_text", text: "📣 Who should be notified?" },
           element: {
             type: "static_select",
             action_id: "value",
             options: [
-              { text: { type: "plain_text", text: "Channel" }, value: "channel" },
-              { text: { type: "plain_text", text: "Admins" }, value: "admins" },
-              { text: { type: "plain_text", text: "Channel + Admins" }, value: "channel_and_admins" },
+              { text: { type: "plain_text", text: "📢 Channel" }, value: "channel" },
+              { text: { type: "plain_text", text: "🔒 Admins only" }, value: "admins" },
+              { text: { type: "plain_text", text: "📢 Channel + 🔒 Admins" }, value: "channel_and_admins" },
             ],
             initial_option: {
               text: {
                 type: "plain_text",
                 text:
                   scope === "admins"
-                    ? "Admins"
+                    ? "🔒 Admins only"
                     : scope === "channel_and_admins"
-                      ? "Channel + Admins"
-                      : "Channel",
+                      ? "📢 Channel + 🔒 Admins"
+                      : "📢 Channel",
               },
               value: scope,
             },
           },
+        },
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 Reminders are sent as DMs to the relevant users and/or posted in the channel based on your selection above.",
+            },
+          ],
         },
       ],
     };

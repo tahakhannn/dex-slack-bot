@@ -8,27 +8,44 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
       type: "modal",
       callback_id: "save_user_profile_modal",
       private_metadata: JSON.stringify({ userId, source }),
-      title: { type: "plain_text", text: source === "onboarding" ? "Start Setup" : "Your Profile" },
-      submit: { type: "plain_text", text: "Save" },
+      title: { type: "plain_text", text: source === "onboarding" ? "🎉 Get Started" : "👤 Your Profile" },
+      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Cancel" },
       blocks: [
         {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: "🎉 Share your birthday and work anniversary so Dex can celebrate the right moments.",
-          },
+          type: "header",
+          text: { type: "plain_text", text: source === "onboarding" ? "🎉 Welcome to Dex!" : "👤 Update Your Profile" },
         },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "Share your birthday and work anniversary so Dex can celebrate the right moments with the whole team. 🥳",
+            },
+          ],
+        },
+        { type: "divider" },
         ...buildDateInputBlocks({
           prefix: "birthday",
-          label: "Birthday",
+          label: "🎂 Birthday",
           initialDate: profile?.birthday,
         }),
         ...buildDateInputBlocks({
           prefix: "anniversary",
-          label: "Anniversary",
+          label: "💼 Work Anniversary",
           initialDate: profile?.anniversary,
         }),
+        { type: "divider" },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "💡 Your dates are stored securely and only used for celebration messages.",
+            },
+          ],
+        },
       ],
     };
   }
@@ -50,13 +67,17 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
     const dmChannelId = await slack.openDirectMessage(client, userId);
     await client.chat.postMessage({
       channel: dmChannelId,
-      text: "🎉 Welcome to Dex setup.",
+      text: "🎉 Welcome to Dex — let's set up your profile!",
       blocks: [
+        {
+          type: "header",
+          text: { type: "plain_text", text: "🎉 Welcome to Dex!" },
+        },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "*🎉 Dex onboarding*\nAdd your birthday and anniversary once so celebrations stay accurate.",
+            text: "Add your birthday and work anniversary once so celebrations stay accurate and the team can cheer you on. 🥳",
           },
         },
         {
@@ -64,8 +85,9 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "button",
-              text: { type: "plain_text", text: "Start Setup" },
+              text: { type: "plain_text", text: "🚀 Get Started" },
               action_id: "start_onboarding_setup",
+              style: "primary",
             },
           ],
         },

@@ -242,9 +242,9 @@ function createTestCenterModule({ db, slack, home, logger = console }) {
         const totalEvents =
           todaysBirthdays.length + todaysAnniversaries.length;
         const lines = [
-          `📦 *Batch Preview — ${now.toFormat("LLLL d, yyyy")}*`,
+          `📊 *Summary*`,
           "",
-          `Total events today: *${totalEvents}*`,
+          `🌟 Total events today: *${totalEvents}*`,
           `🎂 Birthdays: *${todaysBirthdays.length}*`,
           `💼 Anniversaries: *${todaysAnniversaries.length}*`,
           "",
@@ -262,7 +262,7 @@ function createTestCenterModule({ db, slack, home, logger = console }) {
         }
 
         if (!totalEvents) {
-          lines.push("_No events scheduled for today._");
+          lines.push("🏖️ _No events scheduled for today — enjoy the quiet!_");
         }
 
         await client.views.push({
@@ -272,6 +272,20 @@ function createTestCenterModule({ db, slack, home, logger = console }) {
             title: { type: "plain_text", text: "📦 Batch Preview" },
             close: { type: "plain_text", text: "Close" },
             blocks: [
+              {
+                type: "header",
+                text: { type: "plain_text", text: `📦 Batch Preview — ${now.toFormat("LLLL d, yyyy")}` },
+              },
+              {
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: "This is a simulation of what a full daily batch run would look like. No messages are sent.",
+                  },
+                ],
+              },
+              { type: "divider" },
               {
                 type: "section",
                 text: {
