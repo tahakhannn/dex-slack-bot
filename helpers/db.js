@@ -118,6 +118,7 @@ const TABLE_COLUMNS = {
     "type",
     "name",
     "message",
+    "intro_text",
     "gif_urls",
     "created_at",
     "updated_at",
