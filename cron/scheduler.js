@@ -518,33 +518,33 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     }
   }
 
-  async function dispatchReminder(reminder, event, admins) {
-    const reminderKey = `reminder:${reminder.daysBefore}:${eventKey(event)}`;
+  async function dispatchReminder(reminder, event, admins, now) {
+    const todayKey = now.toISODate();
+    const reminderKey = `reminder:${todayKey}:${reminder.daysBefore}:${eventKey(event)}`;
     if (alreadySentReminder(reminderKey)) {
       return;
     }
 
-    const whenText = reminder.daysBefore === 1 ? "is tomorrow" : `is in ${reminder.daysBefore} day(s)`;
-    const reminderText = `🔔 Heads up — <@${event.userId}>'s ${event.type} ${whenText} ${
-      event.type === "birthday" ? "🎂" : "💼"
-    }`;
+    const icon = event.type === "birthday" ? "🎂" : "💼";
+    const typeLabel = event.type === "birthday" ? "birthday" : "work anniversary";
+    const whenText = reminder.daysBefore === 1 ? "is *tomorrow*" : `is in *${reminder.daysBefore} day(s)*`;
+    const reminderText = `🔔 *Heads up* — <@${event.userId}>'s ${typeLabel} ${whenText} ${icon}`;
 
-    const userDmSent = await sendChannelMessage(
-      event.userId,
-      { text: reminderText },
-      `Slack user reminder (${event.type}:${event.userId})`,
-    );
+    let sent = false;
 
+    // DMs go to admins (not the celebrant) — admins need the heads-up
     if (reminder.scope === "admins" || reminder.scope === "channel_and_admins") {
       for (const admin of admins) {
-        await sendChannelMessage(
+        const adminSent = await sendChannelMessage(
           admin.slack_id,
           { text: reminderText },
           `Slack admin reminder (${event.type}:${event.userId}:${admin.slack_id})`,
         );
+        if (adminSent) sent = true;
       }
     }
 
+    // Channel post for "channel" and "channel_and_admins" scopes
     if (reminder.scope === "channel" || reminder.scope === "channel_and_admins") {
       try {
         await callWithRetry(`Slack channel reminder (${event.type}:${event.userId}:${event.channelId})`, async () =>
@@ -555,6 +555,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
           }),
         );
         recordSuccess();
+        sent = true;
         await sleep(300);
       } catch (error) {
         recordFailure(DateTime.now());
@@ -562,7 +563,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       }
     }
 
-    if (userDmSent) {
+    if (sent) {
       markReminderSent(reminderKey);
     }
   }
@@ -615,6 +616,38 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     });
   }
 
+  async function processReminders(settings, context) {
+    const now = DateTime.now().setZone(settings.timezone || "UTC");
+    if (!settings.channelId || settings.whoToCelebrate === "none") {
+      return;
+    }
+
+    const channelReminders = context.reminders.filter(
+      (reminder) => reminder.channelId === settings.channelId || !reminder.channelId,
+    );
+
+    if (!channelReminders.length) {
+      return;
+    }
+
+    const channelEvents = [];
+    for (const employee of context.employees) {
+      if (!employee.slackId) {
+        continue;
+      }
+      channelEvents.push(...buildChannelEvents({ employee, settings }));
+    }
+
+    for (const event of channelEvents) {
+      for (const reminder of channelReminders) {
+        const reminderDate = computeReminderDate(event, reminder.daysBefore);
+        if (reminderDate?.hasSame(now, "day")) {
+          await dispatchReminder(reminder, event, context.admins, now);
+        }
+      }
+    }
+  }
+
   async function processCelebrations(settings, context) {
     const now = DateTime.now().setZone(settings.timezone || "UTC");
     if (!canRunNow(settings, now)) {
@@ -622,10 +655,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     }
 
     const channelEvents = [];
-    const channelReminders = context.reminders.filter(
-      (reminder) => reminder.channelId === settings.channelId || !reminder.channelId,
-    );
-
     for (const employee of context.employees) {
       if (!employee.slackId) {
         continue;
@@ -637,15 +666,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       }
 
       channelEvents.push(...buildChannelEvents({ employee, settings }));
-    }
-
-    for (const event of channelEvents) {
-      for (const reminder of channelReminders) {
-        const reminderDate = computeReminderDate(event, reminder.daysBefore);
-        if (reminderDate?.hasSame(now, "day")) {
-          await dispatchReminder(reminder, event, context.admins);
-        }
-      }
     }
 
     const todaysBirthdays = channelEvents.filter(
@@ -712,11 +732,10 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       ]);
 
       for (const settings of settingsList) {
-        await processCelebrations(settings, {
-          employees,
-          reminders,
-          admins,
-        });
+        // Reminders run independently — not gated by postTime
+        await processReminders(settings, { employees, reminders, admins });
+        // Celebrations only fire within ±15min of postTime
+        await processCelebrations(settings, { employees, reminders, admins });
       }
     } catch (error) {
       recordFailure(now);

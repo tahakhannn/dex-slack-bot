@@ -138,22 +138,33 @@ function createSlackHelpers({ logger = console } = {}) {
   async function postReminderMessage(client, { channelId, event, daysBefore }) {
     const display = await getUserDisplay(client, event.userId);
     const icon = event.type === "birthday" ? "🎂" : "💼";
+    const typeLabel = event.type === "birthday" ? "Birthday" : "Work Anniversary";
+    const whenText = daysBefore === 1 ? "tomorrow" : `in ${daysBefore} day(s)`;
 
     await client.chat.postMessage({
       channel: channelId,
-      text: `${icon} Reminder: ${display.name} is coming up in ${daysBefore} day(s).`,
+      text: `${icon} Reminder: ${display.name}'s ${typeLabel.toLowerCase()} is ${whenText}`,
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `${icon} *Reminder*\n<@${event.userId}> has a ${event.type} ${daysBefore} day(s) from now.`,
+            text: `🔔 *Upcoming ${typeLabel}*\n<@${event.userId}>'s ${typeLabel.toLowerCase()} is *${whenText}*!`,
           },
           accessory: {
             type: "image",
             image_url: display.avatar,
             alt_text: display.name,
           },
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `${icon} ${typeLabel} · ⏰ ${whenText} · 📢 Reminder`,
+            },
+          ],
         },
       ],
     });

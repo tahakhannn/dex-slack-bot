@@ -31,7 +31,7 @@ function createRemindersModule({ db, home }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Get notified before upcoming birthdays and work anniversaries so you never miss a celebration.",
+              text: "Get notified before upcoming birthdays and work anniversaries so you never miss a celebration. Reminders go to admins and/or the channel.",
             },
           ],
         },
@@ -84,7 +84,7 @@ function createRemindersModule({ db, home }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "💡 Reminders are sent as DMs to the relevant users and/or posted in the channel based on your selection above.",
+              text: "💡 *Channel* → posts a reminder in the celebration channel. *Admins only* → sends a DM to each admin. *Both* → does both. Reminders run once daily, independent of your post time.",
             },
           ],
         },
