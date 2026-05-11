@@ -449,11 +449,7 @@ function createHomeModule({ db, slack, logger = console }) {
         {
           type: "actions",
           elements: [
-            {
-              type: "button",
-              text: { type: "plain_text", text: "✍️ Templates" },
-              action_id: "open_templates_modal",
-            },
+
             {
               type: "button",
               text: { type: "plain_text", text: "📋 Manage Templates" },

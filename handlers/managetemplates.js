@@ -61,6 +61,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     return {
       templateId: chosen.id,
       messageTemplate: chosen.message,
+      introText: chosen.introText || "",
       gifUrl,
       gifIndex,
     };
@@ -269,6 +270,27 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         },
         {
           type: "input",
+          block_id: "template_intro",
+          optional: true,
+          label: { type: "plain_text", text: "📣 Intro Line" },
+          element: {
+            type: "plain_text_input",
+            action_id: "value",
+            placeholder: { type: "plain_text", text: "e.g. Today is a celebration day, everybody gather around 🥳" },
+            ...(existing?.introText ? { initial_value: existing.introText } : {}),
+          },
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "The opening line shown at the top of every celebration message posted.",
+            },
+          ],
+        },
+        {
+          type: "input",
           block_id: "template_message",
           label: { type: "plain_text", text: "Cheer Message" },
           element: {
@@ -339,6 +361,13 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           type: "mrkdwn",
           text: `*Name:* ${template.name}`,
         },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*📣 Intro Line:* ${template.introText || "_Default intro_"}`
+        }
       },
       { type: "divider" },
       {
@@ -519,6 +548,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         const { type, id } = meta;
 
         const name = (view.state.values.template_name?.value?.value || "").trim() || "Template";
+        const introText = (view.state.values.template_intro?.value?.value || "").trim();
         const message = (view.state.values.template_message?.value?.value || "").trim();
         const rawGifs = view.state.values.template_gifs?.value?.value || "";
         const gifUrls = rawGifs
@@ -526,7 +556,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           .map((u) => u.trim())
           .filter(Boolean);
 
-        await db.saveBulkTemplate({ id: id || null, type, name, message, gifUrls });
+        await db.saveBulkTemplate({ id: id || null, type, name, message, introText, gifUrls });
 
         // Refresh home
         await home.publishHome(client, body.user.id);

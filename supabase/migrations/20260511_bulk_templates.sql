@@ -8,6 +8,7 @@ create table if not exists public.bulk_templates (
   type        text not null check (type in ('birthday', 'anniversary')),
   name        text not null default 'Template',
   message     text not null default '',
+  intro_text  text not null default '',
   gif_urls    text[] default '{}',
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()

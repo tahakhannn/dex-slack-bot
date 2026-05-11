@@ -1293,6 +1293,7 @@ function createDbHelpers({ logger = console } = {}) {
       type: row.type || "birthday",
       name: row.name || "Template",
       message: row.message || "",
+      introText: row.intro_text || "",
       gifUrls: Array.isArray(row.gif_urls) ? row.gif_urls : [],
     };
   }
@@ -1318,7 +1319,7 @@ function createDbHelpers({ logger = console } = {}) {
     return row ? normalizeBulkTemplate(row) : null;
   }
 
-  async function saveBulkTemplate({ id = null, type, name, message, gifUrls }) {
+  async function saveBulkTemplate({ id = null, type, name, message, introText, gifUrls }) {
     const columns = await detectColumns("bulk_templates");
     if (!columns.length) {
       throw new Error("bulk_templates table is missing. Apply the required Supabase migration first.");
@@ -1329,6 +1330,7 @@ function createDbHelpers({ logger = console } = {}) {
       type,
       name: name || "Template",
       message: message || "",
+      intro_text: introText || "",
       gif_urls: Array.isArray(gifUrls) ? gifUrls : [],
       updated_at: new Date().toISOString(),
     };

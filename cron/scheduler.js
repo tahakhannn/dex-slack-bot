@@ -165,7 +165,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
             messageIndex: null,
             gifIndex: bulk.gifIndex,
             messageTemplate: bulk.messageTemplate,
-            introText: "",
+            introText: bulk.introText || "",
             gifUrl: bulk.gifUrl || null,
             isDbTemplate: true,
           };
