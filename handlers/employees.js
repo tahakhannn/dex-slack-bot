@@ -657,6 +657,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
 
         for (const addedId of addedAdmins) {
           await slack.sendAdminAddedNotification(client, addedId);
+          await home.publishHome(client, addedId);
         }
 
         for (const removedId of removedAdmins) {

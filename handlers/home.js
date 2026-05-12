@@ -56,27 +56,10 @@ function createHomeModule({ db, slack, logger = console }) {
     };
   }
 
-  function formatPostTimeForSummary(postTime) {
-    const match = String(postTime || "").match(/^(\d{2}):(\d{2})$/);
-    if (!match) {
-      return postTime || "_Not set_";
-    }
-
-    const hour = Number(match[1]);
-    const minute = match[2];
-    if (hour > 23) {
-      return postTime;
-    }
-
-    const period = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 || 12;
-    return `${String(displayHour).padStart(2, "0")}:${minute} ${period}`;
-  }
-
   function buildSettingsSummary(settings, allRecorded) {
     const lines = [
       `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
-      `⏰ *Post time:* ${formatPostTimeForSummary(settings.postTime)}`,
+      `⏰ *Post time:* ${settings.postTime || "_Not set_"}`,
       `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
@@ -448,7 +431,7 @@ function createHomeModule({ db, slack, logger = console }) {
           elements: [
             {
               type: "button",
-              text: { type: "plain_text", text: "⚙️ General Settings" },
+              text: { type: "plain_text", text: "➕ Add Channel" },
               action_id: "open_settings_modal",
             },
             {
@@ -574,12 +557,12 @@ function createHomeModule({ db, slack, logger = console }) {
           },
           ...(homeState.filterUserId
             ? [
-                {
-                  type: "button",
-                  text: { type: "plain_text", text: "Clear Filter" },
-                  action_id: "clear_upcoming_filter",
-                },
-              ]
+              {
+                type: "button",
+                text: { type: "plain_text", text: "Clear Filter" },
+                action_id: "clear_upcoming_filter",
+              },
+            ]
             : []),
         ],
       },
