@@ -63,7 +63,7 @@ function createHomeModule({ db, slack, logger = console }) {
       const hour = parseInt(h, 10);
       const isPm = hour >= 12;
       const hour12 = hour % 12 || 12;
-      formattedTime = `${settings.postTime} (${hour12}:${m} ${isPm ? "p.m." : "a.m."})`;
+      formattedTime = `${hour12}:${m} ${isPm ? "p.m." : "a.m."}`;
     }
 
     const lines = [
