@@ -209,6 +209,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           trigger_id: body.trigger_id,
           view: buildStepOneModal(settings, includeChannelPicker),
         });
+        await home.publishHome(client, body.user.id);
       } catch (error) {
         logger.error("Failed to open settings modal", error);
       }
