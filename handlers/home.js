@@ -56,10 +56,27 @@ function createHomeModule({ db, slack, logger = console }) {
     };
   }
 
+  function formatPostTimeForSummary(postTime) {
+    const match = String(postTime || "").match(/^(\d{2}):(\d{2})$/);
+    if (!match) {
+      return postTime || "_Not set_";
+    }
+
+    const hour = Number(match[1]);
+    const minute = match[2];
+    if (hour > 23) {
+      return postTime;
+    }
+
+    const period = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${String(displayHour).padStart(2, "0")}:${minute} ${period}`;
+  }
+
   function buildSettingsSummary(settings, allRecorded) {
     const lines = [
       `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
-      `⏰ *Post time:* ${settings.postTime || "_Not set_"}`,
+      `⏰ *Post time:* ${formatPostTimeForSummary(settings.postTime)}`,
       "🎬 *GIF:* ✅ Always included",
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
