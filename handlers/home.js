@@ -77,7 +77,7 @@ function createHomeModule({ db, slack, logger = console }) {
     const lines = [
       `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
       `⏰ *Post time:* ${formatPostTimeForSummary(settings.postTime)}`,
-      "🎬 *GIF:* ✅ Always included",
+      `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
 

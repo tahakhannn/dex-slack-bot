@@ -335,8 +335,10 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       events.length === 1 && primaryOverride?.gifUrl
         ? primaryOverride.gifUrl
         : selectedCopy.gifUrl;
-    const gifCandidate = await chooseRequiredGif(type, candidateGifUrl, selectedCopy.gifUrl, selectedCopy.gifIndex);
-    const gifUrl = gifCandidate.url;
+    const gifCandidate = settings.includeGif
+      ? await chooseRequiredGif(type, candidateGifUrl, selectedCopy.gifUrl, selectedCopy.gifIndex)
+      : null;
+    const gifUrl = gifCandidate?.url || "";
 
     const introText = selectedCopy.introText || "Your daily dose of celebration is here, let's do it 🥳";
 
