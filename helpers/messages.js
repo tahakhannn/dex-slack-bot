@@ -238,14 +238,6 @@ function buildPreviewText({
     lines.push(customMessage || fallbackMessage);
   }
 
-  if (event.type === "anniversary") {
-    const years = getAnniversaryYears(event, now);
-    if (years) {
-      lines.push("");
-      lines.push(`Milestone: ${years} years • ${getAnniversaryTone(years)}`);
-    }
-  }
-
   if (gifUrl) {
     lines.push("");
     lines.push(`GIF: ${gifUrl}`);
