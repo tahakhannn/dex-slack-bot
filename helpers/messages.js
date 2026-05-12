@@ -193,15 +193,15 @@ function buildCelebrationBlocks({
     },
   };
 
+  blocks.push({ type: "divider" }, cheerBlock);
+
   if (gifUrl) {
-    cheerBlock.accessory = {
+    blocks.push({
       type: "image",
       image_url: gifUrl,
       alt_text: "celebration gif",
-    };
+    });
   }
-
-  blocks.push({ type: "divider" }, cheerBlock);
 
   return blocks;
 }
