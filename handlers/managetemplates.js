@@ -474,32 +474,29 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     } else {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "_No GIFs added yet — paste URLs below to get started._" }],
+        elements: [{ type: "mrkdwn", text: "_No GIFs added yet — click Add GIF below to get started._" }],
       });
     }
 
     blocks.push(
       {
-        type: "input",
-        block_id: "new_gifs",
-        optional: true,
-        label: { type: "plain_text", text: "➕ Add GIF URLs (one per line)" },
-        element: {
-          type: "plain_text_input",
-          action_id: "value",
-          multiline: true,
-          placeholder: {
-            type: "plain_text",
-            text: "https://media.giphy.com/media/xxx/giphy.gif\nhttps://media.giphy.com/media/yyy/giphy.gif",
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "➕ Add GIF" },
+            action_id: "add_single_gif_to_pool",
+            value: JSON.stringify({ type }),
+            style: "primary",
           },
-        },
+        ],
       },
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: "💡 Paste one GIF URL per line. Click the link on any existing GIF to open it in your browser.",
+            text: "💡 Click the link on any existing GIF to open it in your browser.",
           },
         ],
       },
@@ -507,12 +504,42 @@ function createManageTemplatesModule({ db, home, logger = console }) {
 
     return {
       type: "modal",
-      callback_id: "save_gif_pool_modal",
+      callback_id: "manage_gif_pool_modal",
       title: { type: "plain_text", text: `🎬 ${label} GIFs` },
-      submit: { type: "plain_text", text: "💾 Save" },
       close: { type: "plain_text", text: "Back" },
       private_metadata: JSON.stringify({ type }),
       blocks,
+    };
+  }
+
+  /** Add single GIF form modal */
+  function buildAddSingleGifModal({ type }) {
+    const emoji = emojiForType(type);
+    const label = labelForType(type);
+
+    return {
+      type: "modal",
+      callback_id: "save_single_gif_modal",
+      title: { type: "plain_text", text: "➕ Add GIF" },
+      submit: { type: "plain_text", text: "Add" },
+      close: { type: "plain_text", text: "Cancel" },
+      private_metadata: JSON.stringify({ type }),
+      blocks: [
+        {
+          type: "header",
+          text: { type: "plain_text", text: `${emoji} ${label} GIF` },
+        },
+        {
+          type: "input",
+          block_id: "gif_url_block",
+          label: { type: "plain_text", text: "GIF URL" },
+          element: {
+            type: "plain_text_input",
+            action_id: "value",
+            placeholder: { type: "plain_text", text: "https://media.giphy.com/media/.../giphy.gif" },
+          },
+        },
+      ],
     };
   }
 
@@ -611,6 +638,25 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       }
     });
 
+    // ── Open Add Single GIF form ────────────────────────────────────────────
+    app.action("add_single_gif_to_pool", async ({ ack, body, action, client }) => {
+      await ack();
+
+      try {
+        if (!(await db.isAdmin(body.user.id))) return;
+
+        const payload = JSON.parse(action.value);
+        const { type } = payload;
+
+        await client.views.push({
+          trigger_id: body.trigger_id,
+          view: buildAddSingleGifModal({ type }),
+        });
+      } catch (error) {
+        logger.error("Failed to open add single GIF modal", error);
+      }
+    });
+
     // ── Remove a single GIF from pool ───────────────────────────────────────
     app.action("remove_gif_from_pool", async ({ ack, body, action, client }) => {
       await ack();
@@ -636,38 +682,38 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       }
     });
 
-    // ── Save GIF pool ───────────────────────────────────────────────────────
-    app.view("save_gif_pool_modal", async ({ ack, view, body, client }) => {
-      await ack({ response_action: "clear" });
+    // ── Save Single GIF ─────────────────────────────────────────────────────
+    app.view("save_single_gif_modal", async ({ ack, view, body, client }) => {
+      // We want to dismiss this "Add GIF" modal immediately
+      await ack();
 
       try {
         const meta = JSON.parse(view.private_metadata || "{}");
         const { type } = meta;
 
-        // Get existing GIFs
-        const existingGifs = await getCentralGifPool(type);
+        // Parse new GIF from the input
+        let newGif = view.state.values.gif_url_block?.value?.value || "";
+        newGif = newGif.trim();
 
-        // Parse new GIFs from the input
-        const rawNewGifs = view.state.values.new_gifs?.value?.value || "";
-        const newGifs = rawNewGifs
-          .split("\n")
-          .map((u) => u.trim())
-          .filter(Boolean);
+        if (newGif) {
+          // Get existing GIFs
+          const existingGifs = await getCentralGifPool(type);
 
-        // Merge: existing + new (deduplicate)
-        const allGifs = [...existingGifs];
-        for (const gif of newGifs) {
-          if (!allGifs.includes(gif)) {
-            allGifs.push(gif);
+          if (!existingGifs.includes(newGif)) {
+            existingGifs.push(newGif);
+            await saveCentralGifPool(type, existingGifs);
+          }
+
+          // Update the underlying GIF pool list view to show the new link
+          if (view.previous_view_id) {
+            await client.views.update({
+              view_id: view.previous_view_id,
+              view: buildGifPoolModal({ type, gifUrls: existingGifs }),
+            });
           }
         }
-
-        await saveCentralGifPool(type, allGifs);
-
-        // Refresh home
-        await home.publishHome(client, body.user.id);
       } catch (error) {
-        logger.error("Failed to save GIF pool", error);
+        logger.error("Failed to save single GIF", error);
       }
     });
 
