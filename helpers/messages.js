@@ -187,24 +187,23 @@ function buildCelebrationBlocks({
     blocks.push(block);
   }
 
-  blocks.push(
-    { type: "divider" },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: cheerText || buildCheerLine(events),
-      },
+  const cheerBlock = {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: cheerText || buildCheerLine(events),
     },
-  );
+  };
 
   if (gifUrl) {
-    blocks.push({
+    cheerBlock.accessory = {
       type: "image",
       image_url: gifUrl,
       alt_text: "celebration gif",
-    });
+    };
   }
+
+  blocks.push({ type: "divider" }, cheerBlock);
 
   return blocks;
 }

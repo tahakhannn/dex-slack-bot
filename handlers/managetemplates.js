@@ -1,3 +1,5 @@
+const { getAllowedGifCandidates } = require("../helpers/gifs");
+
 /**
  * Manage Templates handler
  *
@@ -41,13 +43,19 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     let gifIndex = null;
     if (chosen.gifUrls && chosen.gifUrls.length > 0) {
       const lastGifIdx = chosen.id === lastId ? (history?.lastGifIndex ?? null) : null;
-      let gifCandidates = chosen.gifUrls
-        .map((url, i) => ({ url, i }))
+      const allowedGifCandidates = await getAllowedGifCandidates(
+        chosen.gifUrls.map((url, i) => ({ url, i })),
+        { logger },
+      );
+      let gifCandidates = allowedGifCandidates
         .filter(({ i }) => i !== lastGifIdx);
-      if (!gifCandidates.length) gifCandidates = chosen.gifUrls.map((url, i) => ({ url, i }));
-      const picked = gifCandidates[Math.floor(Math.random() * gifCandidates.length)];
-      gifUrl = picked.url;
-      gifIndex = picked.i;
+      if (!gifCandidates.length) gifCandidates = allowedGifCandidates;
+
+      if (gifCandidates.length) {
+        const picked = gifCandidates[Math.floor(Math.random() * gifCandidates.length)];
+        gifUrl = picked.url;
+        gifIndex = picked.i;
+      }
     }
 
     // Save history for next time

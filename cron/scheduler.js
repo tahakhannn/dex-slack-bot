@@ -10,6 +10,7 @@ const {
   ordinal,
   renderTemplate,
 } = require("../helpers/messages");
+const { getAllowedGifCandidates, getAllowedGifUrl } = require("../helpers/gifs");
 
 const STYLE_ALIASES = {
   playful: "fun",
@@ -155,6 +156,28 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     return nextIndex;
   }
 
+  function chooseSmartGifCandidate(candidates, lastIndex) {
+    if (!candidates.length) {
+      return null;
+    }
+    if (candidates.length === 1) {
+      return candidates[0];
+    }
+
+    let pool = candidates.filter((candidate) => candidate.index !== lastIndex);
+    if (!pool.length) {
+      pool = candidates;
+    }
+
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  async function chooseAllowedGif(urls = [], lastIndex = null) {
+    const candidates = urls.map((url, index) => ({ url, index }));
+    const allowedCandidates = await getAllowedGifCandidates(candidates, { logger });
+    return chooseSmartGifCandidate(allowedCandidates, lastIndex);
+  }
+
   async function chooseMessageAndGif({ slackId, type, style }) {
     // 1. Try bulk template library (smart non-repeat randomization)
     if (manageTemplates) {
@@ -178,14 +201,13 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     // 2. Try legacy single saved template as a fallback
     const dbTemplate = await db.getTemplate(type);
     if (dbTemplate?.message) {
-      const gifUrls = dbTemplate.gifUrls || [];
-      const gifIndex = gifUrls.length ? Math.floor(Math.random() * gifUrls.length) : null;
+      const gifCandidate = await chooseAllowedGif(dbTemplate.gifUrls || []);
       return {
         messageIndex: 0,
-        gifIndex,
+        gifIndex: gifCandidate?.index ?? null,
         messageTemplate: dbTemplate.message,
         introText: dbTemplate.introText || "",
-        gifUrl: gifIndex !== null ? gifUrls[gifIndex] : null,
+        gifUrl: gifCandidate?.url || null,
         isDbTemplate: true,
       };
     }
@@ -196,14 +218,14 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     const gifPool = DEFAULT_GIFS[type] || [];
     const history = await db.getMessageHistory(slackId, type);
     const messageIndex = chooseSmartIndex(messagePool.length, history?.lastMessageIndex ?? null);
-    const gifIndex = chooseSmartIndex(gifPool.length, history?.lastGifIndex ?? null);
+    const gifCandidate = await chooseAllowedGif(gifPool, history?.lastGifIndex ?? null);
 
     return {
       messageIndex,
-      gifIndex,
+      gifIndex: gifCandidate?.index ?? null,
       messageTemplate: messagePool[messageIndex] || "",
       introText: "",
-      gifUrl: gifIndex !== null ? gifPool[gifIndex] : "",
+      gifUrl: gifCandidate?.url || "",
       isDbTemplate: false,
     };
   }
@@ -279,12 +301,13 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       events.length === 1 && primaryOverride?.customMessage
         ? primaryOverride.customMessage
         : buildBatchCheer(type, events, selectedCopy.messageTemplate, now);
-    const gifUrl =
+    const candidateGifUrl =
       events.length === 1 && primaryOverride?.gifUrl
         ? primaryOverride.gifUrl
         : settings.includeGif
           ? selectedCopy.gifUrl
           : "";
+    const gifUrl = await getAllowedGifUrl(candidateGifUrl, { logger });
 
     const introText = selectedCopy.introText || "Your daily dose of celebration is here, let's do it 🥳";
 
@@ -357,6 +380,25 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     }
   }
 
+  function hasImageContent(blocks = []) {
+    return blocks.some(
+      (block) => block.type === "image" || block.accessory?.alt_text === "celebration gif",
+    );
+  }
+
+  function stripImageContent(blocks = []) {
+    return blocks
+      .filter((block) => block.type !== "image")
+      .map((block) => {
+        if (block.accessory?.alt_text !== "celebration gif") {
+          return block;
+        }
+
+        const { accessory: _accessory, ...rest } = block;
+        return rest;
+      });
+  }
+
   async function sendChannelMessage(channelId, payload, logLabel) {
     if (!payload?.text?.trim()) {
       logger.info(`Skipped ${logLabel}: empty message`);
@@ -377,13 +419,13 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       await sleep(300);
       return true;
     } catch (error) {
-      if (payload.blocks?.some((block) => block.type === "image")) {
+      if (hasImageContent(payload.blocks)) {
         try {
           await callWithRetry(`${logLabel} (without gif)`, async () =>
             app.client.chat.postMessage({
               channel: channelId,
               text: payload.text,
-              blocks: payload.blocks.filter((block) => block.type !== "image"),
+              blocks: stripImageContent(payload.blocks),
             }),
           );
           recordSuccess();
