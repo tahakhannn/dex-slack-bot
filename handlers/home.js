@@ -386,22 +386,31 @@ function createHomeModule({ db, slack, logger = console }) {
         blocks: [
           {
             type: "header",
-            text: { type: "plain_text", text: "🚫 Access Denied" },
+            text: { type: "plain_text", text: "👋 Your Profile" },
           },
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: "You don't have permission to access Dex administration. If you believe this is a mistake, please reach out to your workspace administrator.",
-            },
-          },
-          { type: "divider" },
           {
             type: "context",
             elements: [
               {
                 type: "mrkdwn",
-                text: "💡 Workspace admins can grant you access via *🔒 Manage Admins*.",
+                text: "Enter your birthdate and work anniversary so we can celebrate the right moments together. 🥳",
+              },
+            ],
+          },
+          {
+            type: "context",
+            elements: [
+              { type: "mrkdwn", text: buildDateSummary("🎂 Birthday", profile.birthday) },
+              { type: "mrkdwn", text: buildDateSummary("💼 Anniversary", profile.anniversary) },
+            ],
+          },
+          {
+            type: "actions",
+            elements: [
+              {
+                type: "button",
+                text: { type: "plain_text", text: "👤 Update Profile" },
+                action_id: "open_profile_modal",
               },
             ],
           },
