@@ -57,9 +57,18 @@ function createHomeModule({ db, slack, logger = console }) {
   }
 
   function buildSettingsSummary(settings, allRecorded) {
+    let formattedTime = "_Not set_";
+    if (settings.postTime) {
+      const [h, m] = settings.postTime.split(":");
+      const hour = parseInt(h, 10);
+      const isPm = hour >= 12;
+      const hour12 = hour % 12 || 12;
+      formattedTime = `${settings.postTime} (${hour12}:${m} ${isPm ? "p.m." : "a.m."})`;
+    }
+
     const lines = [
       `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
-      `⏰ *Post time:* ${settings.postTime || "_Not set_"}`,
+      `⏰ *Post time:* ${formattedTime}`,
       `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
@@ -431,7 +440,7 @@ function createHomeModule({ db, slack, logger = console }) {
           elements: [
             {
               type: "button",
-              text: { type: "plain_text", text: "➕ Add Channel" },
+              text: { type: "plain_text", text: "⚙️ General Settings" },
               action_id: "open_settings_modal",
             },
             {
