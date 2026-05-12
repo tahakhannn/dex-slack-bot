@@ -98,26 +98,6 @@ function createSettingsModule({ db, slack, home, logger = console }) {
 
     blocks.push(
       { type: "divider" },
-      {
-        type: "header",
-        text: { type: "plain_text", text: "🎯 Celebration Scope" },
-      },
-      staticSelectInput({
-        blockId: "who_to_celebrate",
-        label: "👥 Who should be celebrated?",
-        options: [
-          {
-            text: { type: "plain_text", text: "🌍 All members" },
-            value: "everyone",
-          },
-          {
-            text: { type: "plain_text", text: "🚫 No members" },
-            value: "none",
-          },
-        ],
-        initialValue: settings.whoToCelebrate,
-        placeholder: "Choose who should be celebrated",
-      }),
       checkboxInput({
         blockId: "include_birthdays",
         label: "🎂 Birthdays",
@@ -256,7 +236,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
         const nextState = {
           ...existing,
           channelId,
-          whoToCelebrate: selectedValue(values.who_to_celebrate.value) || "everyone",
+          whoToCelebrate: existing.whoToCelebrate || SETTINGS_DEFAULTS.whoToCelebrate,
           includeBirthdays: isChecked(values, "include_birthdays"),
           includeAnniversaries: isChecked(values, "include_anniversaries"),
         };

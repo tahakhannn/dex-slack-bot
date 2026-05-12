@@ -431,7 +431,7 @@ function createHomeModule({ db, slack, logger = console }) {
           elements: [
             {
               type: "button",
-              text: { type: "plain_text", text: "➕ Add Channel" },
+              text: { type: "plain_text", text: "⚙️ General Settings" },
               action_id: "open_settings_modal",
             },
             {
