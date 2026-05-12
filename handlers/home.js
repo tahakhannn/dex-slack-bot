@@ -361,8 +361,8 @@ function createHomeModule({ db, slack, logger = console }) {
     const homeState = getState(userId);
     const selectedChannelId =
       homeState.selectedChannelId ||
-      channelSettings[0]?.channelId ||
       process.env.DEFAULT_CHANNEL_ID ||
+      channelSettings[0]?.channelId ||
       null;
     const settings =
       channelSettings.find((entry) => entry.channelId === selectedChannelId) ||
