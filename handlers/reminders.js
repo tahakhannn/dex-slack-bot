@@ -39,6 +39,7 @@ function createRemindersModule({ db, home }) {
         {
           type: "input",
           block_id: "days_before",
+          optional: true,
           label: { type: "plain_text", text: "🔔 When should reminders fire?" },
           element: {
             type: "multi_static_select",
@@ -111,15 +112,6 @@ function createRemindersModule({ db, home }) {
 
     app.view("save_reminders_modal", async ({ ack, view, body, client }) => {
       const selectedDays = view.state.values.days_before.value.selected_options.map((option) => option.value);
-      if (!selectedDays.length) {
-        await ack({
-          response_action: "errors",
-          errors: {
-            days_before: "Choose at least one reminder offset.",
-          },
-        });
-        return;
-      }
 
       await ack({ response_action: "clear" });
 
