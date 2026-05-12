@@ -178,18 +178,41 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     return chooseSmartGifCandidate(allowedCandidates, lastIndex);
   }
 
+  function defaultGifUrl(type) {
+    return DEFAULT_GIFS[type]?.[0] || DEFAULT_GIFS.birthday[0] || "";
+  }
+
+  async function chooseRequiredGif(type, preferredUrl = "", fallbackUrl = "", lastIndex = null) {
+    const preferred = await getAllowedGifUrl(preferredUrl, { logger });
+    if (preferred) {
+      return { url: preferred, index: null };
+    }
+
+    const fallback = await getAllowedGifUrl(fallbackUrl, { logger });
+    if (fallback) {
+      return { url: fallback, index: lastIndex };
+    }
+
+    const defaultCandidate = await chooseAllowedGif(DEFAULT_GIFS[type] || DEFAULT_GIFS.birthday, lastIndex);
+    return {
+      url: defaultCandidate?.url || defaultGifUrl(type),
+      index: defaultCandidate?.index ?? null,
+    };
+  }
+
   async function chooseMessageAndGif({ slackId, type, style }) {
     // 1. Try bulk template library (smart non-repeat randomization)
     if (manageTemplates) {
       try {
         const bulk = await manageTemplates.chooseBulkTemplateForEvent({ slackId, type });
         if (bulk) {
+          const gifCandidate = await chooseRequiredGif(type, bulk.gifUrl);
           return {
             messageIndex: null,
-            gifIndex: bulk.gifIndex,
+            gifIndex: bulk.gifIndex ?? gifCandidate.index,
             messageTemplate: bulk.messageTemplate,
             introText: bulk.introText || "",
-            gifUrl: bulk.gifUrl || null,
+            gifUrl: gifCandidate.url,
             isDbTemplate: true,
           };
         }
@@ -202,12 +225,13 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     const dbTemplate = await db.getTemplate(type);
     if (dbTemplate?.message) {
       const gifCandidate = await chooseAllowedGif(dbTemplate.gifUrls || []);
+      const requiredGif = await chooseRequiredGif(type, gifCandidate?.url || "", "", gifCandidate?.index ?? null);
       return {
         messageIndex: 0,
-        gifIndex: gifCandidate?.index ?? null,
+        gifIndex: gifCandidate?.index ?? requiredGif.index,
         messageTemplate: dbTemplate.message,
         introText: dbTemplate.introText || "",
-        gifUrl: gifCandidate?.url || null,
+        gifUrl: requiredGif.url,
         isDbTemplate: true,
       };
     }
@@ -219,13 +243,19 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     const history = await db.getMessageHistory(slackId, type);
     const messageIndex = chooseSmartIndex(messagePool.length, history?.lastMessageIndex ?? null);
     const gifCandidate = await chooseAllowedGif(gifPool, history?.lastGifIndex ?? null);
+    const requiredGif = await chooseRequiredGif(
+      type,
+      gifCandidate?.url || "",
+      "",
+      gifCandidate?.index ?? history?.lastGifIndex ?? null,
+    );
 
     return {
       messageIndex,
-      gifIndex: gifCandidate?.index ?? null,
+      gifIndex: gifCandidate?.index ?? requiredGif.index,
       messageTemplate: messagePool[messageIndex] || "",
       introText: "",
-      gifUrl: gifCandidate?.url || "",
+      gifUrl: requiredGif.url,
       isDbTemplate: false,
     };
   }
@@ -304,10 +334,9 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     const candidateGifUrl =
       events.length === 1 && primaryOverride?.gifUrl
         ? primaryOverride.gifUrl
-        : settings.includeGif
-          ? selectedCopy.gifUrl
-          : "";
-    const gifUrl = await getAllowedGifUrl(candidateGifUrl, { logger });
+        : selectedCopy.gifUrl;
+    const gifCandidate = await chooseRequiredGif(type, candidateGifUrl, selectedCopy.gifUrl, selectedCopy.gifIndex);
+    const gifUrl = gifCandidate.url;
 
     const introText = selectedCopy.introText || "Your daily dose of celebration is here, let's do it 🥳";
 
@@ -380,25 +409,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     }
   }
 
-  function hasImageContent(blocks = []) {
-    return blocks.some(
-      (block) => block.type === "image" || block.accessory?.alt_text === "celebration gif",
-    );
-  }
-
-  function stripImageContent(blocks = []) {
-    return blocks
-      .filter((block) => block.type !== "image")
-      .map((block) => {
-        if (block.accessory?.alt_text !== "celebration gif") {
-          return block;
-        }
-
-        const { accessory: _accessory, ...rest } = block;
-        return rest;
-      });
-  }
-
   async function sendChannelMessage(channelId, payload, logLabel) {
     if (!payload?.text?.trim()) {
       logger.info(`Skipped ${logLabel}: empty message`);
@@ -419,25 +429,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       await sleep(300);
       return true;
     } catch (error) {
-      if (hasImageContent(payload.blocks)) {
-        try {
-          await callWithRetry(`${logLabel} (without gif)`, async () =>
-            app.client.chat.postMessage({
-              channel: channelId,
-              text: payload.text,
-              blocks: stripImageContent(payload.blocks),
-            }),
-          );
-          recordSuccess();
-          await sleep(300);
-          return true;
-        } catch (fallbackError) {
-          recordFailure(now);
-          logger.error(`Slack send failed permanently: ${logLabel}`, fallbackError?.data || fallbackError);
-          return false;
-        }
-      }
-
       recordFailure(now);
       logger.error(`Slack send failed permanently: ${logLabel}`, error?.data || error);
       return false;

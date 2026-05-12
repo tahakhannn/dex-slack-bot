@@ -176,12 +176,6 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           text: { type: "plain_text", text: "🎨 Preferences" },
         },
         checkboxInput({
-          blockId: "include_gif",
-          label: "🎬 GIF",
-          optionText: "Include a celebratory GIF with each message",
-          initialChecked: stepOne.includeGif,
-        }),
-        checkboxInput({
           blockId: "mention_channel",
           label: "📣 Mention",
           optionText: "Include @channel mention to notify everyone",
@@ -263,7 +257,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           ...stepOne,
           postTime: values.post_time.value.selected_time || SETTINGS_DEFAULTS.postTime,
           timezone: selectedValue(values.timezone.value) || SETTINGS_DEFAULTS.timezone,
-          includeGif: isChecked(values, "include_gif"),
+          includeGif: true,
           mentionChannel: isChecked(values, "mention_channel"),
           tagChannel: isChecked(values, "mention_channel"),
           // Preserve missing fields using defaults
