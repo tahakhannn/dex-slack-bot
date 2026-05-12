@@ -276,11 +276,22 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     throw lastError;
   }
 
-  function fillMessageTemplate(template, event, now) {
-    const years = getAnniversaryYears(event, now);
+  function fillMessageTemplate(template, events, now) {
+    const eventList = Array.isArray(events) ? events : [events];
+    const slackIdStr = eventList.map((e) => e.userId).join(">, <@");
+    
+    let yearsStr = "";
+    if (eventList.length === 1) {
+      yearsStr = String(getAnniversaryYears(eventList[0], now));
+    } else {
+      const yearsArr = eventList.map((e) => getAnniversaryYears(e, now));
+      const allSame = yearsArr.every((y) => y === yearsArr[0]);
+      yearsStr = allSame ? String(yearsArr[0]) : yearsArr.join("/");
+    }
+
     return renderTemplate(template, {
-      slackId: event.userId,
-      years,
+      slackId: slackIdStr,
+      years: yearsStr,
     });
   }
 
@@ -321,7 +332,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       return `Let's give ${events.map((event) => `<@${event.userId}>`).join(", ")} a big cheer for being awesome! 🎊`;
     }
 
-    return fillMessageTemplate(messageTemplate, events[0], now);
+    return fillMessageTemplate(messageTemplate, events, now);
   }
 
   async function buildMessagePayload({ type, events, settings, selectedCopy, overrideMap = new Map(), now }) {
@@ -504,6 +515,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       return;
     }
 
+    const unsentEvents = [];
     for (const event of events) {
       const alreadySent = await db.hasSentEvent({
         slackId: event.userId,
@@ -512,31 +524,37 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
         channelId: settings.channelId,
       });
 
-      if (alreadySent) {
-        continue;
+      if (!alreadySent) {
+        unsentEvents.push(event);
       }
+    }
 
-      const selectedCopy = await chooseMessageAndGif({
-        slackId: event.userId,
-        type,
-        style: settings.style,
-      });
+    if (!unsentEvents.length) {
+      return;
+    }
 
-      const payload = await buildMessagePayload({
-        type,
-        events: [event],
-        settings,
-        selectedCopy,
-        now,
-      });
+    const selectedCopy = await chooseMessageAndGif({
+      slackId: unsentEvents[0].userId,
+      type,
+      style: settings.style,
+    });
 
-      const sent = await sendChannelMessage(
-        settings.channelId,
-        payload,
-        `Slack celebration post (${type}:${event.userId}:${settings.channelId})`,
-      );
+    const payload = await buildMessagePayload({
+      type,
+      events: unsentEvents,
+      settings,
+      selectedCopy,
+      now,
+    });
 
-      if (sent) {
+    const sent = await sendChannelMessage(
+      settings.channelId,
+      payload,
+      `Slack celebration post (${type}:batch of ${unsentEvents.length}:${settings.channelId})`,
+    );
+
+    if (sent) {
+      for (const event of unsentEvents) {
         await db.recordSentEvent({
           slackId: event.userId,
           type,
