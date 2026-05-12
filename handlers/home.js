@@ -81,13 +81,6 @@ function createHomeModule({ db, slack, logger = console }) {
   }
 
   function fallbackPreviewMessage(event, template) {
-    if (template?.message) {
-      return renderTemplate(template.message, {
-        slackId: event.userId,
-        years: getAnniversaryYears(event, DateTime.now()),
-      });
-    }
-
     if (event.type === "birthday") {
       return `🎂 Happy Birthday <@${event.userId}>!`;
     }
