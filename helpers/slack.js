@@ -1,5 +1,3 @@
-const { WebClient } = require("@slack/web-api");
-
 function createSlackHelpers({ logger = console } = {}) {
   const userCache = new Map();
   const channelCache = new Map();
@@ -91,48 +89,6 @@ function createSlackHelpers({ logger = console } = {}) {
   async function openDirectMessage(client, userId) {
     const response = await client.conversations.open({ users: userId });
     return response.channel?.id || null;
-  }
-
-  function buildCelebrationBlocks({ event, display, settings }) {
-    const icon = event.type === "birthday" ? "🎂" : "💼";
-    const title = event.type === "birthday" ? "Birthday" : "Work Anniversary";
-    // Always prepend <!channel> for celebration announcements.
-    const gifLine = settings.includeGif ? "\n🎉 Let's celebrate together." : "";
-
-    return [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `<!channel>\n${icon} *${title} alert*\nToday we're celebrating <@${event.userId}>.${gifLine}`,
-        },
-        accessory: {
-          type: "image",
-          image_url: display.avatar,
-          alt_text: display.name,
-        },
-      },
-      {
-        type: "context",
-        elements: [
-          { type: "mrkdwn", text: `🎉 ${display.name}` },
-          {
-            type: "mrkdwn",
-            text: settings.style === "formal" ? "Celebrate with appreciation." : "Celebrate with heart.",
-          },
-        ],
-      },
-    ];
-  }
-
-  async function postCelebrationMessage(client, { channelId, event, settings }) {
-    const display = await getUserDisplay(client, event.userId);
-
-    await client.chat.postMessage({
-      channel: channelId,
-      text: `${event.type === "birthday" ? "🎂" : "💼"} Celebration for ${display.name}`,
-      blocks: buildCelebrationBlocks({ event, display, settings }),
-    });
   }
 
   async function postReminderMessage(client, { channelId, event, daysBefore }) {
@@ -293,7 +249,6 @@ function createSlackHelpers({ logger = console } = {}) {
   }
 
   return {
-    WebClient,
     getUserInfo,
     getUserStatus,
     getUserDisplay,
@@ -301,7 +256,6 @@ function createSlackHelpers({ logger = console } = {}) {
     syncUserEmailFromSlack,
     getConversationName,
     openDirectMessage,
-    postCelebrationMessage,
     postReminderMessage,
     sendAdminAddedNotification,
     sendAdminRemovedNotification,

@@ -175,7 +175,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       }
     }
 
-    // 2. Try single saved template (Templates button)
+    // 2. Try legacy single saved template as a fallback
     const dbTemplate = await db.getTemplate(type);
     if (dbTemplate?.message) {
       const gifUrls = dbTemplate.gifUrls || [];

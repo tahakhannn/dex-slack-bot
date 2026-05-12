@@ -771,16 +771,6 @@ function createDbHelpers({ logger = console } = {}) {
     };
   }
 
-  async function listCustomMessages() {
-    const columns = await detectColumns("custom_messages");
-    if (!columns.length) {
-      return [];
-    }
-
-    const rows = await selectAll("custom_messages", (query) => query.order("date", { ascending: true }));
-    return rows.map((row) => normalizeCustomMessage(row));
-  }
-
   async function getCustomMessage(slackId, date, type = null) {
     const columns = await detectColumns("custom_messages");
     if (!columns.length) {
@@ -805,47 +795,6 @@ function createDbHelpers({ logger = console } = {}) {
     }
 
     return data?.[0] ? normalizeCustomMessage(data[0]) : null;
-  }
-
-  async function saveCustomMessage({ slackId, date, type = null, message, gifUrl }) {
-    const columns = await detectColumns("custom_messages");
-    if (!columns.length) {
-      throw new Error("custom_messages table is missing. Apply the required Supabase migration first.");
-    }
-
-    const existing = await getCustomMessage(slackId, date, type);
-    const payload = {
-      slack_id: slackId,
-      workspace_id: defaultWorkspaceId(),
-      date,
-      type,
-      message,
-      gif_url: gifUrl,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (existing) {
-      let query = supabase
-        .from("custom_messages")
-        .update(await filterPayload("custom_messages", payload))
-        .eq("slack_id", slackId)
-        .eq("date", date);
-
-      if (type && columns.includes("type")) {
-        query = query.eq("type", type);
-      }
-
-      const rows = await query.select();
-
-      if (rows.error) {
-        logger.error("Supabase saveCustomMessage update failed", rows.error);
-        throw rows.error;
-      }
-
-      return normalizeCustomMessage(rows.data?.[0] || existing);
-    }
-
-    return normalizeCustomMessage(await insertRow("custom_messages", payload));
   }
 
   async function hasSentEvent({ slackId, type, date, channelId }) {
@@ -1045,15 +994,6 @@ function createDbHelpers({ logger = console } = {}) {
     }));
   }
 
-  async function listTemplates() {
-    const columns = await detectColumns("templates");
-    if (!columns.length) {
-      return [];
-    }
-
-    return selectAll("templates", (query) => query.order("type", { ascending: true }));
-  }
-
   async function getTemplate(type) {
     const columns = await detectColumns("templates");
     if (!columns.length) {
@@ -1072,24 +1012,6 @@ function createDbHelpers({ logger = console } = {}) {
       introText: row.intro_text || "",
       gifUrls: Array.isArray(row.gif_urls) ? row.gif_urls : [],
     };
-  }
-
-  async function saveTemplate({ type, message, introText, gifUrls }) {
-    const columns = await detectColumns("templates");
-    if (!columns.length) {
-      throw new Error("templates table is missing. Apply the required Supabase migration first.");
-    }
-
-    const payload = {
-      type,
-      workspace_id: defaultWorkspaceId(),
-      message: message || "",
-      intro_text: introText || "",
-      gif_urls: Array.isArray(gifUrls) ? gifUrls : [],
-      updated_at: new Date().toISOString(),
-    };
-
-    return upsertBy("templates", "type", payload);
   }
 
   async function resetEmployeeData() {
@@ -1454,12 +1376,8 @@ function createDbHelpers({ logger = console } = {}) {
     recordSentEvent,
     getMessageHistory,
     saveMessageHistory,
-    listCustomMessages,
     getCustomMessage,
-    saveCustomMessage,
-    listTemplates,
     getTemplate,
-    saveTemplate,
     resetEmployeeData,
     listSentEventsForRange,
     getEventOverride,

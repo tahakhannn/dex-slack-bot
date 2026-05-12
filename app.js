@@ -9,9 +9,7 @@ const { createSettingsModule } = require("./handlers/settings");
 const { createRemindersModule } = require("./handlers/reminders");
 const { createOnboardingModule } = require("./handlers/onboarding");
 const { createCalendarModule } = require("./handlers/calendar");
-const { createTestCenterModule } = require("./handlers/testcenter");
 const { createDataManagerModule } = require("./handlers/datamanager");
-const { createTemplatesModule } = require("./handlers/templates");
 const { createManageTemplatesModule } = require("./handlers/managetemplates");
 const { createScheduler } = require("./cron/scheduler");
 
@@ -46,9 +44,7 @@ const settings = createSettingsModule({ db, slack, home });
 const reminders = createRemindersModule({ db, home });
 const onboarding = createOnboardingModule({ db, slack, home, logger });
 const calendar = createCalendarModule({ db, slack, home, logger });
-const testCenter = createTestCenterModule({ db, slack, home, logger });
 const dataManager = createDataManagerModule({ db, slack, home, logger });
-const templates = createTemplatesModule({ db, slack, home, logger });
 const manageTemplates = createManageTemplatesModule({ db, home, logger });
 const scheduler = createScheduler({ app, db, slack, manageTemplates, logger });
 
@@ -58,9 +54,7 @@ settings.register(app);
 reminders.register(app);
 onboarding.register(app);
 calendar.register(app);
-testCenter.register(app);
 dataManager.register(app);
-templates.register(app);
 manageTemplates.register(app);
 
 receiver.app.get("/healthz", (_req, res) => {
