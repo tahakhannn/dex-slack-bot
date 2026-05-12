@@ -44,7 +44,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     let gifIndex = null;
     const centralGifs = await getCentralGifPool(type);
     if (centralGifs.length > 0) {
-      const lastGifIdx = chosen.id === lastId ? (history?.lastGifIndex ?? null) : null;
+      const lastGifIdx = history?.lastGifIndex ?? null;
       const allowedGifCandidates = await getAllowedGifCandidates(
         centralGifs.map((url, i) => ({ url, i })),
         { logger },
