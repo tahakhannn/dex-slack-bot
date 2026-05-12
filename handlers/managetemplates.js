@@ -6,11 +6,12 @@ const { getAllowedGifCandidates } = require("../helpers/gifs");
  * Provides a bulk-template library for Birthday and Work Anniversary messages.
  * Each template has:
  *  - a display name
+ *  - an intro text line
  *  - a cheer message (supports <@USER>, {ANNIV_YEARS})
- *  - multiple GIF URLs (randomly picked, non-repeating per user)
  *
- * The scheduler calls `chooseBulkTemplateForEvent` instead of the single
- * db template, giving true randomized rotation across the library.
+ * GIFs are managed separately in a centralized pool per type (birthday / anniversary).
+ * The scheduler picks a random template AND a random GIF independently, ensuring
+ * maximum variety in celebration messages.
  */
 
 function createManageTemplatesModule({ db, home, logger = console }) {
@@ -38,13 +39,14 @@ function createManageTemplatesModule({ db, home, logger = console }) {
 
     const chosen = candidates[Math.floor(Math.random() * candidates.length)];
 
-    // Pick a GIF inside the template (avoid last gif index only if same template)
+    // Pick a GIF from the centralized pool (not from the template)
     let gifUrl = null;
     let gifIndex = null;
-    if (chosen.gifUrls && chosen.gifUrls.length > 0) {
+    const centralGifs = await getCentralGifPool(type);
+    if (centralGifs.length > 0) {
       const lastGifIdx = chosen.id === lastId ? (history?.lastGifIndex ?? null) : null;
       const allowedGifCandidates = await getAllowedGifCandidates(
-        chosen.gifUrls.map((url, i) => ({ url, i })),
+        centralGifs.map((url, i) => ({ url, i })),
         { logger },
       );
       let gifCandidates = allowedGifCandidates
@@ -75,10 +77,24 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     };
   }
 
+  /** Get the centralized GIF pool for a type from the legacy templates table */
+  async function getCentralGifPool(type) {
+    const template = await db.getTemplate(type);
+    return template?.gifUrls || [];
+  }
+
+  /** Save the centralized GIF pool for a type */
+  async function saveCentralGifPool(type, gifUrls) {
+    await db.saveTemplate({
+      type,
+      gifUrls: Array.isArray(gifUrls) ? gifUrls : [],
+    });
+  }
+
   // ─── modal builders ──────────────────────────────────────────────────────
 
   /** Top-level list modal showing birthday & anniversary templates */
-  function buildManageTemplatesModal({ birthdayTemplates, anniversaryTemplates }) {
+  function buildManageTemplatesModal({ birthdayTemplates, anniversaryTemplates, birthdayGifCount, anniversaryGifCount }) {
     const blocks = [
       {
         type: "header",
@@ -109,12 +125,11 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       });
     } else {
       for (const t of birthdayTemplates) {
-        const gifCount = t.gifUrls?.length || 0;
         blocks.push({
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}${gifCount ? `\n_${gifCount} GIF(s) attached_` : ""}`,
+            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}`,
           },
           accessory: {
             type: "overflow",
@@ -137,6 +152,19 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         });
       }
     }
+
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `🎬 *Birthday GIFs:* ${birthdayGifCount ? `_${birthdayGifCount} GIF(s) saved_` : "_No GIFs added yet_"}`,
+      },
+      accessory: {
+        type: "button",
+        text: { type: "plain_text", text: "🎬 Birthday GIFs" },
+        action_id: "open_gif_pool_birthday",
+      },
+    });
 
     blocks.push(
       {
@@ -168,12 +196,11 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       });
     } else {
       for (const t of anniversaryTemplates) {
-        const gifCount = t.gifUrls?.length || 0;
         blocks.push({
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}${gifCount ? `\n_${gifCount} GIF(s) attached_` : ""}`,
+            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}`,
           },
           accessory: {
             type: "overflow",
@@ -198,6 +225,19 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     }
 
     blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `🎬 *Anniversary GIFs:* ${anniversaryGifCount ? `_${anniversaryGifCount} GIF(s) saved_` : "_No GIFs added yet_"}`,
+      },
+      accessory: {
+        type: "button",
+        text: { type: "plain_text", text: "🎬 Anniversary GIFs" },
+        action_id: "open_gif_pool_anniversary",
+      },
+    });
+
+    blocks.push({
       type: "actions",
       elements: [
         {
@@ -217,7 +257,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           {
             type: "mrkdwn",
             text:
-              "💡 *Smart randomization:* The bot automatically rotates through your templates and never picks the same one twice in a row for the same person.",
+              "💡 *Smart randomization:* The bot automatically rotates through your templates *and* GIFs independently — ensuring maximum variety in every celebration.",
           },
         ],
       },
@@ -232,7 +272,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     };
   }
 
-  /** "Add / Edit" form modal */
+  /** "Add / Edit" form modal — no GIF fields */
   function buildAddEditModal({ type, existing = null }) {
     const isEdit = Boolean(existing);
     const emoji = emojiForType(type);
@@ -315,48 +355,14 @@ function createManageTemplatesModule({ db, home, logger = console }) {
             ...(existing?.message ? { initial_value: existing.message } : {}),
           },
         },
-        { type: "divider" },
-        {
-          type: "header",
-          text: { type: "plain_text", text: "🎬 GIFs for this template" },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text:
-                "Add multiple GIF URLs (one per line). The bot will rotate through them so the *same message* shows a *different GIF* each time it is triggered.",
-            },
-          ],
-        },
-        {
-          type: "input",
-          block_id: "template_gifs",
-          optional: true,
-          label: { type: "plain_text", text: "GIF URLs (one per line)" },
-          element: {
-            type: "plain_text_input",
-            action_id: "value",
-            multiline: true,
-            placeholder: {
-              type: "plain_text",
-              text: "https://media.giphy.com/media/xxx/giphy.gif\nhttps://media.giphy.com/media/yyy/giphy.gif",
-            },
-            ...(existing?.gifUrls?.length
-              ? { initial_value: existing.gifUrls.join("\n") }
-              : {}),
-          },
-        },
       ],
     };
   }
 
-  /** "View" read-only modal */
+  /** "View" read-only modal — no GIF section */
   function buildViewModal({ template }) {
     const emoji = emojiForType(template.type);
     const label = labelForType(template.type);
-    const gifCount = template.gifUrls?.length || 0;
 
     const blocks = [
       {
@@ -392,33 +398,6 @@ function createManageTemplatesModule({ db, home, logger = console }) {
               .replace(/\{ANNIV_YEARS\}/g, "5") || "_No message set_",
         },
       },
-    ];
-
-    if (gifCount) {
-      blocks.push(
-        { type: "divider" },
-        {
-          type: "header",
-          text: { type: "plain_text", text: `🎬 GIFs (${gifCount})` },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: template.gifUrls.map((url, i) => `${i + 1}. ${url}`).join("\n"),
-            },
-          ],
-        },
-      );
-    } else {
-      blocks.push({
-        type: "context",
-        elements: [{ type: "mrkdwn", text: "_No GIFs attached to this template._" }],
-      });
-    }
-
-    blocks.push(
       { type: "divider" },
       {
         type: "context",
@@ -429,13 +408,110 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           },
         ],
       },
-    );
+    ];
 
     return {
       type: "modal",
       callback_id: "view_bulk_template_modal",
       title: { type: "plain_text", text: "👁️ View Template" },
       close: { type: "plain_text", text: "Close" },
+      blocks,
+    };
+  }
+
+  /** GIF pool management modal */
+  function buildGifPoolModal({ type, gifUrls }) {
+    const emoji = emojiForType(type);
+    const label = labelForType(type);
+
+    const blocks = [
+      {
+        type: "header",
+        text: { type: "plain_text", text: `${emoji} ${label} GIFs` },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Manage the GIF pool for *${label.toLowerCase()}* celebrations. The bot randomly picks a different GIF each time, never repeating consecutively for the same person.`,
+          },
+        ],
+      },
+      { type: "divider" },
+    ];
+
+    if (gifUrls.length) {
+      blocks.push({
+        type: "header",
+        text: { type: "plain_text", text: `🎬 Current GIFs (${gifUrls.length})` },
+      });
+
+      for (let i = 0; i < gifUrls.length; i++) {
+        const url = gifUrls[i];
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `${i + 1}. <${url}|${url.length > 60 ? url.slice(0, 57) + "…" : url}>`,
+          },
+          accessory: {
+            type: "button",
+            text: { type: "plain_text", text: "🗑️ Remove" },
+            action_id: "remove_gif_from_pool",
+            value: JSON.stringify({ type, index: i }),
+            confirm: {
+              title: { type: "plain_text", text: "Remove GIF?" },
+              text: { type: "plain_text", text: "This GIF will be removed from the pool." },
+              confirm: { type: "plain_text", text: "Remove" },
+              deny: { type: "plain_text", text: "Cancel" },
+            },
+          },
+        });
+      }
+
+      blocks.push({ type: "divider" });
+    } else {
+      blocks.push({
+        type: "context",
+        elements: [{ type: "mrkdwn", text: "_No GIFs added yet — paste URLs below to get started._" }],
+      });
+    }
+
+    blocks.push(
+      {
+        type: "input",
+        block_id: "new_gifs",
+        optional: true,
+        label: { type: "plain_text", text: "➕ Add GIF URLs (one per line)" },
+        element: {
+          type: "plain_text_input",
+          action_id: "value",
+          multiline: true,
+          placeholder: {
+            type: "plain_text",
+            text: "https://media.giphy.com/media/xxx/giphy.gif\nhttps://media.giphy.com/media/yyy/giphy.gif",
+          },
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "💡 Paste one GIF URL per line. Click the link on any existing GIF to open it in your browser.",
+          },
+        ],
+      },
+    );
+
+    return {
+      type: "modal",
+      callback_id: "save_gif_pool_modal",
+      title: { type: "plain_text", text: `🎬 ${label} GIFs` },
+      submit: { type: "plain_text", text: "💾 Save" },
+      close: { type: "plain_text", text: "Back" },
+      private_metadata: JSON.stringify({ type }),
       blocks,
     };
   }
@@ -450,14 +526,21 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       try {
         if (!(await db.isAdmin(body.user.id))) return;
 
-        const [birthdayTemplates, anniversaryTemplates] = await Promise.all([
+        const [birthdayTemplates, anniversaryTemplates, birthdayGifPool, anniversaryGifPool] = await Promise.all([
           db.listBulkTemplates("birthday"),
           db.listBulkTemplates("anniversary"),
+          getCentralGifPool("birthday"),
+          getCentralGifPool("anniversary"),
         ]);
 
         await client.views.open({
           trigger_id: body.trigger_id,
-          view: buildManageTemplatesModal({ birthdayTemplates, anniversaryTemplates }),
+          view: buildManageTemplatesModal({
+            birthdayTemplates,
+            anniversaryTemplates,
+            birthdayGifCount: birthdayGifPool.length,
+            anniversaryGifCount: anniversaryGifPool.length,
+          }),
         });
       } catch (error) {
         logger.error("Failed to open manage templates modal", error);
@@ -492,6 +575,99 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         });
       } catch (error) {
         logger.error("Failed to open add anniversary template modal", error);
+      }
+    });
+
+    // ── GIF pool buttons ────────────────────────────────────────────────────
+    app.action("open_gif_pool_birthday", async ({ ack, body, client }) => {
+      await ack();
+
+      try {
+        if (!(await db.isAdmin(body.user.id))) return;
+
+        const gifUrls = await getCentralGifPool("birthday");
+        await client.views.push({
+          trigger_id: body.trigger_id,
+          view: buildGifPoolModal({ type: "birthday", gifUrls }),
+        });
+      } catch (error) {
+        logger.error("Failed to open birthday GIF pool modal", error);
+      }
+    });
+
+    app.action("open_gif_pool_anniversary", async ({ ack, body, client }) => {
+      await ack();
+
+      try {
+        if (!(await db.isAdmin(body.user.id))) return;
+
+        const gifUrls = await getCentralGifPool("anniversary");
+        await client.views.push({
+          trigger_id: body.trigger_id,
+          view: buildGifPoolModal({ type: "anniversary", gifUrls }),
+        });
+      } catch (error) {
+        logger.error("Failed to open anniversary GIF pool modal", error);
+      }
+    });
+
+    // ── Remove a single GIF from pool ───────────────────────────────────────
+    app.action("remove_gif_from_pool", async ({ ack, body, action, client }) => {
+      await ack();
+
+      try {
+        if (!(await db.isAdmin(body.user.id))) return;
+
+        const payload = JSON.parse(action.value);
+        const { type, index } = payload;
+        const gifUrls = await getCentralGifPool(type);
+
+        // Remove the GIF at the specified index
+        const updated = gifUrls.filter((_, i) => i !== index);
+        await saveCentralGifPool(type, updated);
+
+        // Refresh the GIF pool modal
+        await client.views.update({
+          view_id: body.view.id,
+          view: buildGifPoolModal({ type, gifUrls: updated }),
+        });
+      } catch (error) {
+        logger.error("Failed to remove GIF from pool", error);
+      }
+    });
+
+    // ── Save GIF pool ───────────────────────────────────────────────────────
+    app.view("save_gif_pool_modal", async ({ ack, view, body, client }) => {
+      await ack({ response_action: "clear" });
+
+      try {
+        const meta = JSON.parse(view.private_metadata || "{}");
+        const { type } = meta;
+
+        // Get existing GIFs
+        const existingGifs = await getCentralGifPool(type);
+
+        // Parse new GIFs from the input
+        const rawNewGifs = view.state.values.new_gifs?.value?.value || "";
+        const newGifs = rawNewGifs
+          .split("\n")
+          .map((u) => u.trim())
+          .filter(Boolean);
+
+        // Merge: existing + new (deduplicate)
+        const allGifs = [...existingGifs];
+        for (const gif of newGifs) {
+          if (!allGifs.includes(gif)) {
+            allGifs.push(gif);
+          }
+        }
+
+        await saveCentralGifPool(type, allGifs);
+
+        // Refresh home
+        await home.publishHome(client, body.user.id);
+      } catch (error) {
+        logger.error("Failed to save GIF pool", error);
       }
     });
 
@@ -531,14 +707,21 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           await db.deleteBulkTemplate(id);
 
           // Refresh the list modal by updating the current view
-          const [birthdayTemplates, anniversaryTemplates] = await Promise.all([
+          const [birthdayTemplates, anniversaryTemplates, birthdayGifPool, anniversaryGifPool] = await Promise.all([
             db.listBulkTemplates("birthday"),
             db.listBulkTemplates("anniversary"),
+            getCentralGifPool("birthday"),
+            getCentralGifPool("anniversary"),
           ]);
 
           await client.views.update({
             view_id: body.view.id,
-            view: buildManageTemplatesModal({ birthdayTemplates, anniversaryTemplates }),
+            view: buildManageTemplatesModal({
+              birthdayTemplates,
+              anniversaryTemplates,
+              birthdayGifCount: birthdayGifPool.length,
+              anniversaryGifCount: anniversaryGifPool.length,
+            }),
           });
           return;
         }
@@ -547,7 +730,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       }
     });
 
-    // ── Save (add or update) ────────────────────────────────────────────────
+    // ── Save (add or update) — no GIFs saved per template ───────────────────
     app.view("save_bulk_template_modal", async ({ ack, view, body, client }) => {
       await ack({ response_action: "clear" });
 
@@ -558,13 +741,8 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         const name = (view.state.values.template_name?.value?.value || "").trim() || "Template";
         const introText = (view.state.values.template_intro?.value?.value || "").trim();
         const message = (view.state.values.template_message?.value?.value || "").trim();
-        const rawGifs = view.state.values.template_gifs?.value?.value || "";
-        const gifUrls = rawGifs
-          .split("\n")
-          .map((u) => u.trim())
-          .filter(Boolean);
 
-        await db.saveBulkTemplate({ id: id || null, type, name, message, introText, gifUrls });
+        await db.saveBulkTemplate({ id: id || null, type, name, message, introText, gifUrls: [] });
 
         // Refresh home
         await home.publishHome(client, body.user.id);
@@ -577,6 +755,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
   return {
     register,
     chooseBulkTemplateForEvent,
+    getCentralGifPool,
   };
 }
 

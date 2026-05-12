@@ -1014,6 +1014,43 @@ function createDbHelpers({ logger = console } = {}) {
     };
   }
 
+  async function saveTemplate({ type, message, introText, gifUrls }) {
+    const columns = await detectColumns("templates");
+    if (!columns.length) {
+      throw new Error("templates table is missing.");
+    }
+
+    const existing = await selectSingle("templates", "type", type);
+    const payload = {
+      workspace_id: defaultWorkspaceId(),
+      type,
+      message: message || existing?.message || "",
+      intro_text: introText || existing?.intro_text || "",
+      gif_urls: Array.isArray(gifUrls) ? gifUrls : (existing?.gif_urls || []),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      const updated = await updateRows("templates", "type", type, payload);
+      return {
+        id: updated[0]?.id || existing.id,
+        type,
+        message: payload.message,
+        introText: payload.intro_text,
+        gifUrls: payload.gif_urls,
+      };
+    }
+
+    const row = await insertRow("templates", payload);
+    return {
+      id: row.id,
+      type,
+      message: payload.message,
+      introText: payload.intro_text,
+      gifUrls: payload.gif_urls,
+    };
+  }
+
   async function resetEmployeeData() {
     const tables = [
       "event_overrides",
@@ -1378,6 +1415,7 @@ function createDbHelpers({ logger = console } = {}) {
     saveMessageHistory,
     getCustomMessage,
     getTemplate,
+    saveTemplate,
     resetEmployeeData,
     listSentEventsForRange,
     getEventOverride,

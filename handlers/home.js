@@ -210,7 +210,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: `*🎬 GIFs from template:*\n${templateGifs.map((url, i) => `${i + 1}. ${url}`).join("\n")}`,
+            text: `*🎬 GIFs from pool:*\n${templateGifs.map((url, i) => `${i + 1}. ${url}`).join("\n")}`,
           },
         ],
       });
