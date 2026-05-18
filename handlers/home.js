@@ -267,14 +267,14 @@ function createHomeModule({ db, slack, logger = console }) {
     const blocks = [
       {
         type: "header",
-        text: { type: "plain_text", text: "👁️ Preview Events" },
+        text: { type: "plain_text", text: "✨ Upcoming Celebrations" },
       },
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: "See how upcoming celebrations will look when posted. Click the 3-dot menu to customize individual events.",
+            text: `Preview how celebrations will appear in ${channelName ? `*#${channelName}*` : "your channel"}. Use the *⋮* menu to customize any event.`,
           },
         ],
       },
@@ -282,10 +282,15 @@ function createHomeModule({ db, slack, logger = console }) {
     ];
 
     if (!events.length) {
-      blocks.push({
-        type: "context",
-        elements: [{ type: "mrkdwn", text: "🏖️ _No upcoming events to preview — check back later!_" }],
-      });
+      blocks.push(
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "🏖️ *No upcoming events to preview*\n_All quiet for now — check back when celebrations are near!_",
+          },
+        },
+      );
     } else {
       for (const event of events.slice(0, 8)) {
         const eventId = buildEventId({
@@ -296,46 +301,55 @@ function createHomeModule({ db, slack, logger = console }) {
         const override = overrideMap.get(eventId);
         const template = event.type === "birthday" ? birthdayTemplate : anniversaryTemplate;
         const fallbackMessage = fallbackPreviewMessage(event, template);
-        const previewText = buildPreviewText({
-          event,
-          customMessage: override?.customMessage || "",
-          fallbackMessage,
-          gifUrl: override?.gifUrl || "",
-          channelName,
-        });
+        const messageBody = override?.customMessage || fallbackMessage;
 
-        blocks.push(
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: previewText,
-            },
-            accessory: {
-              type: "overflow",
-              action_id: "event_actions",
-              options: [
-                {
-                  text: { type: "plain_text", text: "✏️ Edit Event" },
-                  value: JSON.stringify({
-                    eventId,
-                    slackId: event.userId,
-                    type: event.type,
-                    date: event.date.toISODate(),
-                    previewUserId,
-                  }),
-                },
-              ],
-            },
+        const isBirthday = event.type === "birthday";
+        const typeEmoji = isBirthday ? "🎂" : "💼";
+        const typeLabel = isBirthday ? "Birthday" : "Work Anniversary";
+        const dateStr = formatCelebrationDate(event.date, true);
+
+        // Event card header
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `${typeEmoji}  *${typeLabel}*  ·  📅 ${dateStr}`,
           },
-          {
-            type: "context",
-            elements: [
+          accessory: {
+            type: "overflow",
+            action_id: "event_actions",
+            options: [
               {
-                type: "mrkdwn",
-                text: override ? "✏️ Customized" : "📝 Default template",
+                text: { type: "plain_text", text: "✏️ Customize Event" },
+                value: JSON.stringify({
+                  eventId,
+                  slackId: event.userId,
+                  type: event.type,
+                  date: event.date.toISODate(),
+                  previewUserId,
+                }),
               },
             ],
+          },
+        });
+
+        // Employee + message preview
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `👤 <@${event.userId}>\n\n> ${messageBody.split("\n").join("\n> ")}`,
+          },
+        });
+
+        // Status footer
+        const statusText = override
+          ? "✏️ *Customized* · This event has a personalized message"
+          : "📝 *Default template* · Using the standard celebration template";
+        blocks.push(
+          {
+            type: "context",
+            elements: [{ type: "mrkdwn", text: statusText }],
           },
           { type: "divider" },
         );
@@ -344,7 +358,7 @@ function createHomeModule({ db, slack, logger = console }) {
 
     return {
       type: "modal",
-      title: { type: "plain_text", text: "👁️ Preview" },
+      title: { type: "plain_text", text: "✨ Preview" },
       close: { type: "plain_text", text: "Close" },
       private_metadata: JSON.stringify({
         channelId: settings.channelId,
