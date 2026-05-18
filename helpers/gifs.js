@@ -45,7 +45,20 @@ function normalizeGifUrl(url) {
 
   try {
     const parsed = new URL(trimmed);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? trimmed : "";
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return "";
+    }
+
+    // Auto-optimize Giphy URLs to the 200px variant (normal size, under 1MB)
+    if (parsed.hostname === "media.giphy.com" || parsed.hostname.endsWith(".giphy.com")) {
+      const giphyRewrite = trimmed.replace(
+        /\/(giphy\.gif|giphy-downsized\.gif|100\.gif|giphy-preview\.gif)$/,
+        "/200.gif",
+      );
+      return giphyRewrite;
+    }
+
+    return trimmed;
   } catch (_error) {
     return "";
   }

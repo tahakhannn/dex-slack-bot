@@ -2,16 +2,16 @@ const { DateTime } = require("luxon");
 
 const DEFAULT_GIFS = {
   birthday: [
-    "https://media.giphy.com/media/g5R9dok94mrIvplmZd/100.gif",
-    "https://media.giphy.com/media/3oEhmNLxk9uiTbL9Be/100.gif",
-    "https://media.giphy.com/media/26FPpSuhgHvYo9Kyk/100.gif",
-    "https://media.giphy.com/media/Im6d35ebkCIiGzonjI/100.gif",
+    "https://media.giphy.com/media/g5R9dok94mrIvplmZd/200.gif",
+    "https://media.giphy.com/media/3oEhmNLxk9uiTbL9Be/200.gif",
+    "https://media.giphy.com/media/26FPpSuhgHvYo9Kyk/200.gif",
+    "https://media.giphy.com/media/Im6d35ebkCIiGzonjI/200.gif",
   ],
   anniversary: [
-    "https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/100.gif",
-    "https://media.giphy.com/media/fPRwBcYd71Lox1v7p2/100.gif",
-    "https://media.giphy.com/media/26u4cqiYI30juCOGY/100.gif",
-    "https://media.giphy.com/media/3o6fJ1BM7R2EBRDnxK/100.gif",
+    "https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/200.gif",
+    "https://media.giphy.com/media/fPRwBcYd71Lox1v7p2/200.gif",
+    "https://media.giphy.com/media/26u4cqiYI30juCOGY/200.gif",
+    "https://media.giphy.com/media/3o6fJ1BM7R2EBRDnxK/200.gif",
   ],
 };
 
