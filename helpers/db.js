@@ -951,37 +951,6 @@ function createDbHelpers({ logger = console } = {}) {
     }
   }
 
-  async function backfillEmails(slackClient, slackHelpers) {
-    const employees = await listEmployees();
-    const missing = employees.filter((e) => !e.email);
-
-    if (!missing.length) {
-      return 0;
-    }
-
-    logger.info(`Email backfill: found ${missing.length} employee(s) without email`);
-    let updated = 0;
-
-    for (const employee of missing) {
-      try {
-        const email = await slackHelpers.getUserEmail(slackClient, employee.slackId);
-        if (email) {
-          await syncUserEmail(employee.slackId, email);
-          updated += 1;
-        } else {
-          logger.warn(`Email backfill: no email found for ${employee.slackId}`);
-        }
-      } catch (error) {
-        logger.error(`Email backfill failed for ${employee.slackId}`, error);
-      }
-
-      // Rate limit: small delay between API calls
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-
-    invalidateEmployeeCache();
-    return updated;
-  }
 
   async function getOptedOutUsers() {
     const profiles = await selectAll("user_profiles");
@@ -1403,7 +1372,7 @@ function createDbHelpers({ logger = console } = {}) {
     syncSlackUsers,
     ensureSlackUser,
     syncUserEmail,
-    backfillEmails,
+
     getOptedOutUsers,
     listEmployeesMissingCelebrationData,
     markOnboardingSent,

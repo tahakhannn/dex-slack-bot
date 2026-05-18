@@ -500,53 +500,6 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
       }
     });
 
-    app.action("open_import_dates_modal", async ({ ack, body, client }) => {
-      await ack();
-
-      try {
-        if (!(await db.isAdmin(body.user.id))) {
-          return;
-        }
-
-        await client.views.open({
-          trigger_id: body.trigger_id,
-          view: buildImportModal(),
-        });
-      } catch (error) {
-        logger.error("Failed to open import modal", error);
-      }
-    });
-
-    app.action("open_billing_modal", async ({ ack, body, client }) => {
-      await ack();
-
-      try {
-        if (!(await db.isAdmin(body.user.id))) {
-          return;
-        }
-
-        await client.views.open({
-          trigger_id: body.trigger_id,
-          view: {
-            type: "modal",
-            title: { type: "plain_text", text: "💳 Billing" },
-            close: { type: "plain_text", text: "Close" },
-            blocks: [
-              {
-                type: "header",
-                text: { type: "plain_text", text: "💳 Billing" },
-              },
-              {
-                type: "context",
-                elements: [{ type: "mrkdwn", text: "🏗️ _Billing management is coming soon. Stay tuned!_" }],
-              },
-            ],
-          },
-        });
-      } catch (error) {
-        logger.error("Failed to open billing modal", error);
-      }
-    });
 
     app.action("open_add_employee_modal", async ({ ack, body, client }) => {
       await ack();
