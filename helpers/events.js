@@ -17,13 +17,13 @@ const SETTINGS_DEFAULTS = {
 
 const TIMEZONE_OPTIONS = [
   { label: "UTC", value: "UTC" },
-  { label: "EST — America/New_York", value: "America/New_York" },
+  { label: "EST — America/New York", value: "America/New_York" },
   { label: "CST — America/Chicago", value: "America/Chicago" },
   { label: "MST — America/Denver", value: "America/Denver" },
-  { label: "PST — America/Los_Angeles", value: "America/Los_Angeles" },
+  { label: "PST — America/Los Angeles", value: "America/Los_Angeles" },
   { label: "AKST — America/Anchorage", value: "America/Anchorage" },
   { label: "HST — Pacific/Honolulu", value: "Pacific/Honolulu" },
-  { label: "AST — America/Puerto_Rico", value: "America/Puerto_Rico" },
+  { label: "AST — America/Puerto Rico", value: "America/Puerto_Rico" },
   { label: "PKT — Asia/Karachi", value: "Asia/Karachi" },
   { label: "IST — Asia/Kolkata", value: "Asia/Kolkata" },
   { label: "GMT — Europe/London", value: "Europe/London" },
@@ -33,7 +33,7 @@ const TIMEZONE_OPTIONS = [
   { label: "AEST — Australia/Sydney", value: "Australia/Sydney" },
   { label: "GST — Asia/Dubai", value: "Asia/Dubai" },
   { label: "SGT — Asia/Singapore", value: "Asia/Singapore" },
-  { label: "BRT — America/Sao_Paulo", value: "America/Sao_Paulo" },
+  { label: "BRT — America/Sao Paulo", value: "America/Sao_Paulo" },
 ];
 
 const REMINDER_SCOPE_DEFAULT = "channel";
