@@ -69,6 +69,7 @@ function createHomeModule({ db, slack, logger = console }) {
     const lines = [
       `📢 *Channel:* ${settings.channelId ? `<#${settings.channelId}>` : "_Not configured_"}`,
       `⏰ *Post time:* ${formattedTime}`,
+      `🌍 *Timezone:* ${settings.timezone || "_Not set_"}`,
       `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
@@ -628,18 +629,6 @@ function createHomeModule({ db, slack, logger = console }) {
       });
     }
 
-    blocks.push(
-      { type: "divider" },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "plain_text",
-            text: `🌍 Timezone: ${settings.timezone || SETTINGS_DEFAULTS.timezone} · ⏰ Post time: ${settings.postTime}`,
-          },
-        ],
-      },
-    );
 
     return {
       type: "home",
