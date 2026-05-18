@@ -200,14 +200,15 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     };
   }
 
-  async function chooseMessageAndGif({ slackId, type, style }) {
+  async function chooseMessageAndGif({ type, style }) {
     // 1. Try bulk template library (smart non-repeat randomization)
     if (manageTemplates) {
       try {
-        const bulk = await manageTemplates.chooseBulkTemplateForEvent({ slackId, type });
+        const bulk = await manageTemplates.chooseBulkTemplateForEvent({ slackId: "GLOBAL", type });
         if (bulk) {
           const gifCandidate = await chooseRequiredGif(type, bulk.gifUrl);
           return {
+            templateId: bulk.templateId,
             messageIndex: null,
             gifIndex: bulk.gifIndex ?? gifCandidate.index,
             messageTemplate: bulk.messageTemplate,
@@ -227,6 +228,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       const gifCandidate = await chooseAllowedGif(dbTemplate.gifUrls || []);
       const requiredGif = await chooseRequiredGif(type, gifCandidate?.url || "", "", gifCandidate?.index ?? null);
       return {
+        templateId: null,
         messageIndex: 0,
         gifIndex: gifCandidate?.index ?? requiredGif.index,
         messageTemplate: dbTemplate.message,
@@ -240,7 +242,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     const normalizedStyle = normalizeStyle(style);
     const messagePool = DEFAULT_MESSAGES[normalizedStyle]?.[type] || DEFAULT_MESSAGES.fun[type];
     const gifPool = DEFAULT_GIFS[type] || [];
-    const history = await db.getMessageHistory(slackId, type);
+    const history = await db.getMessageHistory("GLOBAL", type);
     const messageIndex = chooseSmartIndex(messagePool.length, history?.lastMessageIndex ?? null);
     const gifCandidate = await chooseAllowedGif(gifPool, history?.lastGifIndex ?? null);
     const requiredGif = await chooseRequiredGif(
@@ -251,6 +253,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     );
 
     return {
+      templateId: null,
       messageIndex,
       gifIndex: gifCandidate?.index ?? requiredGif.index,
       messageTemplate: messagePool[messageIndex] || "",
@@ -474,7 +477,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
 
       const override = await resolveEventOverride(event, now);
       const selectedCopy = await chooseMessageAndGif({
-        slackId: event.userId,
         type: event.type,
         style: settings.style,
       });
@@ -500,8 +502,16 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
           date: now.toISODate(),
           channelId: settings.channelId,
         });
+        if (selectedCopy.templateId) {
+          await db.saveBulkTemplateHistory({
+            slackId: "GLOBAL",
+            type: event.type,
+            lastTemplateId: selectedCopy.templateId,
+            lastGifIndex: selectedCopy.gifIndex,
+          });
+        }
         await db.saveMessageHistory({
-          slackId: event.userId,
+          slackId: "GLOBAL",
           type: event.type,
           lastMessageIndex: selectedCopy.messageIndex,
           lastGifIndex: selectedCopy.gifIndex,
@@ -534,7 +544,6 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     }
 
     const selectedCopy = await chooseMessageAndGif({
-      slackId: unsentEvents[0].userId,
       type,
       style: settings.style,
     });
@@ -554,18 +563,27 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     );
 
     if (sent) {
+      if (selectedCopy.templateId) {
+        await db.saveBulkTemplateHistory({
+          slackId: "GLOBAL",
+          type,
+          lastTemplateId: selectedCopy.templateId,
+          lastGifIndex: selectedCopy.gifIndex,
+        });
+      }
+      await db.saveMessageHistory({
+        slackId: "GLOBAL",
+        type,
+        lastMessageIndex: selectedCopy.messageIndex,
+        lastGifIndex: selectedCopy.gifIndex,
+      });
+
       for (const event of unsentEvents) {
         await db.recordSentEvent({
           slackId: event.userId,
           type,
           date: now.toISODate(),
           channelId: settings.channelId,
-        });
-        await db.saveMessageHistory({
-          slackId: event.userId,
-          type,
-          lastMessageIndex: selectedCopy.messageIndex,
-          lastGifIndex: selectedCopy.gifIndex,
         });
       }
     }

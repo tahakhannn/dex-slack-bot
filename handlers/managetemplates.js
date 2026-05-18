@@ -60,13 +60,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       }
     }
 
-    // Save history for next time
-    await db.saveBulkTemplateHistory({
-      slackId,
-      type,
-      lastTemplateId: chosen.id,
-      lastGifIndex: gifIndex,
-    });
+
 
     return {
       templateId: chosen.id,
