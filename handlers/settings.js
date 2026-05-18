@@ -61,7 +61,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: "Configure which channel Dex posts to and what events to celebrate. Fine-tune timing and preferences on the next page.",
           },
         ],
@@ -143,7 +143,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Set the posting schedule, timezone, and message preferences for this channel.",
             },
           ],

@@ -322,7 +322,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Import, export, or reset employee celebration data. Use spreadsheets to bulk-manage your team.",
             },
           ],

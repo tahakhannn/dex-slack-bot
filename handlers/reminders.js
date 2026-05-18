@@ -30,7 +30,7 @@ function createRemindersModule({ db, home }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Get notified before upcoming birthdays and work anniversaries so you never miss a celebration. Reminders go to admins and/or the channel.",
             },
           ],

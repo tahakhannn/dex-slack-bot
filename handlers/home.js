@@ -224,7 +224,7 @@ function createHomeModule({ db, slack, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: "💡 Leave both fields blank to reset this event back to the default template.",
           },
         ],
@@ -399,7 +399,7 @@ function createHomeModule({ db, slack, logger = console }) {
             type: "context",
             elements: [
               {
-                type: "mrkdwn",
+                type: "plain_text",
                 text: "Enter your birthdate and work anniversary so we can celebrate the right moments together. 🥳",
               },
             ],
@@ -524,7 +524,7 @@ function createHomeModule({ db, slack, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: "Enter your birthdate and work anniversary so we can celebrate the right moments together. 🥳",
           },
         ],
@@ -596,7 +596,7 @@ function createHomeModule({ db, slack, logger = console }) {
     if (!upcoming.items.length) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "🏖️ _No upcoming events to show — check back later!_" }],
+        elements: [{ type: "plain_text", text: "🏖️ No upcoming events to show — check back later!" }],
       });
     } else {
       for (const event of upcoming.items) {
@@ -634,7 +634,7 @@ function createHomeModule({ db, slack, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: `🌍 Timezone: ${settings.timezone || SETTINGS_DEFAULTS.timezone} · ⏰ Post time: ${settings.postTime}`,
           },
         ],
@@ -714,7 +714,7 @@ function createHomeModule({ db, slack, logger = console }) {
                 type: "context",
                 elements: [
                   {
-                    type: "mrkdwn",
+                    type: "plain_text",
                     text: "A snapshot of your team's celebration data and this month's activity.",
                   },
                 ],
@@ -791,7 +791,7 @@ function createHomeModule({ db, slack, logger = console }) {
             type: "context",
             elements: [
               {
-                type: "mrkdwn",
+                type: "plain_text",
                 text: "Employees who have chosen to skip birthday or anniversary celebrations.",
               },
             ],
@@ -802,7 +802,7 @@ function createHomeModule({ db, slack, logger = console }) {
         if (!optedOutUsers.length) {
           blocks.push({
             type: "context",
-            elements: [{ type: "mrkdwn", text: "✅ _No users have opted out — everyone's celebrating!_" }],
+            elements: [{ type: "plain_text", text: "✅ No users have opted out — everyone's celebrating!" }],
           });
         } else {
           for (const user of optedOutUsers) {

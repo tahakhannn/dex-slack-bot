@@ -115,7 +115,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     if (!birthdayTemplates.length) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "_No birthday templates yet — add one below._" }],
+        elements: [{ type: "plain_text", text: "No birthday templates yet — add one below." }],
       });
     } else {
       for (const t of birthdayTemplates) {
@@ -185,7 +185,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
       blocks.push({
         type: "context",
         elements: [
-          { type: "mrkdwn", text: "_No anniversary templates yet — add one below._" },
+          { type: "plain_text", text: "No anniversary templates yet — add one below." },
         ],
       });
     } else {
@@ -326,7 +326,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "The opening line shown at the top of every celebration message posted.",
             },
           ],
@@ -468,7 +468,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     } else {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "_No GIFs added yet — click Add GIF below to get started._" }],
+        elements: [{ type: "plain_text", text: "No GIFs added yet — click Add GIF below to get started." }],
       });
     }
 
@@ -489,7 +489,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: "💡 Click the link on any existing GIF to open it in your browser.",
           },
         ],

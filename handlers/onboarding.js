@@ -20,7 +20,7 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Share your birthday and work anniversary so Dex can celebrate the right moments with the whole team. 🥳",
             },
           ],
@@ -41,7 +41,7 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "💡 Your dates are stored securely and only used for celebration messages.",
             },
           ],

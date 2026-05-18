@@ -114,7 +114,7 @@ function createCalendarModule({ db, home, logger = console }) {
     if (!hasEvents) {
       blocks.push({
         type: "context",
-        elements: [{ type: "mrkdwn", text: "🏖️ _No celebrations this month — enjoy the quiet!_" }],
+        elements: [{ type: "plain_text", text: "🏖️ No celebrations this month — enjoy the quiet!" }],
       });
     }
 
@@ -124,7 +124,7 @@ function createCalendarModule({ db, home, logger = console }) {
         type: "context",
         elements: [
           {
-            type: "mrkdwn",
+            type: "plain_text",
             text: "✅ Sent · ⏳ Pending · 🎂 Birthday · 💼 Anniversary · 👉 Today",
           },
         ],

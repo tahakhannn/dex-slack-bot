@@ -256,7 +256,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Grant or revoke admin access to Dex. Admins can manage settings, employees, templates, and more.",
             },
           ],
@@ -279,7 +279,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "💡 Slack workspace owners and admins automatically have admin access. Users added here get access even if they aren't workspace admins.",
             },
           ],
@@ -304,7 +304,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           type: "context",
           elements: [
             {
-              type: "mrkdwn",
+              type: "plain_text",
               text: "Paste one teammate per line using the format below. Birthday is column 2, anniversary is column 3.",
             },
           ],
