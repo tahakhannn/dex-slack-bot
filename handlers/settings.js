@@ -149,25 +149,17 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           ],
         },
         { type: "divider" },
-        staticSelectInput({
-          blockId: "post_time",
-          label: "⏰ Post time",
-          options: Array.from({ length: 96 }, (_, i) => {
-            const h = Math.floor(i / 4);
-            const m = (i % 4) * 15;
-            const hour24 = String(h).padStart(2, "0");
-            const min = String(m).padStart(2, "0");
-            const value = `${hour24}:${min}`;
-            const hour12 = h % 12 || 12;
-            const ampm = h >= 12 ? "PM" : "AM";
-            return {
-              text: { type: "plain_text", text: `${hour12}:${min} ${ampm}` },
-              value,
-            };
-          }),
-          initialValue: stepOne.postTime || SETTINGS_DEFAULTS.postTime,
-          placeholder: "Select a time",
-        }),
+        {
+          type: "input",
+          block_id: "post_time",
+          label: { type: "plain_text", text: "⏰ Post time" },
+          element: {
+            type: "timepicker",
+            action_id: "value",
+            initial_time: stepOne.postTime || SETTINGS_DEFAULTS.postTime,
+            placeholder: { type: "plain_text", text: "Select a time" },
+          },
+        },
         staticSelectInput({
           blockId: "timezone",
           label: "🌍 Timezone",
@@ -269,7 +261,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
       try {
         const settings = {
           ...stepOne,
-          postTime: selectedValue(values.post_time.value) || SETTINGS_DEFAULTS.postTime,
+          postTime: values.post_time.value.selected_time || SETTINGS_DEFAULTS.postTime,
           timezone: selectedValue(values.timezone.value) || SETTINGS_DEFAULTS.timezone,
           includeGif: isChecked(values, "include_gif"),
           mentionChannel: isChecked(values, "mention_channel"),
