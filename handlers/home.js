@@ -56,7 +56,7 @@ function createHomeModule({ db, slack, logger = console }) {
     };
   }
 
-  function buildSettingsSummary(settings, allRecorded) {
+  function buildSettingsSummary(settings, allRecorded, isBotInChannel = true) {
     let formattedTime = "_Not set_";
     if (settings.postTime) {
       const [h, m] = settings.postTime.split(":");
@@ -73,6 +73,10 @@ function createHomeModule({ db, slack, logger = console }) {
       `🎬 *GIF:* ${settings.includeGif ? "✅ Enabled" : "❌ Disabled"}`,
       `📣 *Mentions:* ${settings.mentionChannel ? "@channel (everyone)" : "Celebrants only"}`,
     ];
+
+    if (!isBotInChannel && settings.channelId) {
+      lines.push("\n⚠️ *Dex is not in this channel! Please add Dex to the channel so celebrations can be posted.*");
+    }
 
     if (allRecorded) {
       lines.push("\n✅ All birthdays and work anniversaries have been recorded!");
@@ -388,6 +392,16 @@ function createHomeModule({ db, slack, logger = console }) {
     const missingUsers = isAdmin ? await db.listEmployeesMissingCelebrationData() : [];
     const upcoming = await buildUpcomingEvents(client, settings, homeState);
 
+    let isBotInChannel = true;
+    if (settings.channelId) {
+      try {
+        const info = await client.conversations.info({ channel: settings.channelId });
+        isBotInChannel = info.channel?.is_member || false;
+      } catch (error) {
+        isBotInChannel = false;
+      }
+    }
+
     if (!isAdmin) {
       return {
         type: "home",
@@ -444,7 +458,7 @@ function createHomeModule({ db, slack, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: buildSettingsSummary(settings, !missingUsers.length),
+            text: buildSettingsSummary(settings, !missingUsers.length, isBotInChannel),
           },
         },
         { type: "divider" },

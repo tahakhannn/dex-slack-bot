@@ -215,7 +215,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
       }
     });
 
-    app.view("settings_step_1_submit", async ({ ack, view }) => {
+    app.view("settings_step_1_submit", async ({ ack, view, client }) => {
       try {
         const values = view.state.values;
         const metadata = JSON.parse(view.private_metadata || "{}");
@@ -228,6 +228,24 @@ function createSettingsModule({ db, slack, home, logger = console }) {
             response_action: "errors",
             errors: {
               channel_id: "Choose a channel before continuing.",
+            },
+          });
+          return;
+        }
+
+        let isMember = false;
+        try {
+          const info = await client.conversations.info({ channel: channelId });
+          isMember = info.channel?.is_member || false;
+        } catch (error) {
+          isMember = false;
+        }
+
+        if (!isMember) {
+          await ack({
+            response_action: "errors",
+            errors: {
+              channel_id: "Dex bot is not in this channel. Please add/invite Dex to the channel first.",
             },
           });
           return;
