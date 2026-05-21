@@ -332,6 +332,20 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
+            text: "🔄 *Sync Slack Users*\nPull all existing members from this Slack workspace into the database. Names and emails are imported automatically.",
+          },
+          accessory: {
+            type: "button",
+            text: { type: "plain_text", text: "🔄 Sync" },
+            action_id: "sync_slack_users",
+            style: "primary",
+          },
+        },
+        { type: "divider" },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
             text: "📥 *Import CSV / XLSX*\nUpload a spreadsheet, paste CSV text, or provide a file URL to bulk-import employees.",
           },
           accessory: {
@@ -580,6 +594,78 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
         });
       } catch (error) {
         logger.error("Failed to open data manager modal", error);
+      }
+    });
+
+    app.action("sync_slack_users", async ({ ack, body, client }) => {
+      await ack();
+
+      try {
+        if (!(await db.isAdmin(body.user.id))) {
+          return;
+        }
+
+        const dmChannelId = await slack.openDirectMessage(client, body.user.id);
+        await client.chat.postMessage({
+          channel: dmChannelId,
+          text: "🔄 Syncing Slack users… This may take a moment.",
+        });
+
+        const allUsers = [];
+        let cursor;
+        do {
+          const result = await client.users.list({
+            limit: 200,
+            ...(cursor ? { cursor } : {}),
+          });
+          allUsers.push(...(result.members || []));
+          cursor = result.response_metadata?.next_cursor;
+        } while (cursor);
+
+        const realUsers = allUsers.filter(
+          (u) => u.id && !u.is_bot && !u.deleted && u.id !== "USLACKBOT",
+        );
+
+        await db.syncSlackUsers(realUsers);
+
+        await client.chat.postMessage({
+          channel: dmChannelId,
+          text: `✅ Sync complete`,
+          blocks: [
+            {
+              type: "header",
+              text: { type: "plain_text", text: "✅ Slack User Sync Complete" },
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: [
+                  `📊 *Sync Summary*`,
+                  "",
+                  `👥 *Total Slack members found:* ${allUsers.length}`,
+                  `✅ *Real users synced:* ${realUsers.length}`,
+                  `🤖 *Bots / deactivated skipped:* ${allUsers.length - realUsers.length}`,
+                  "",
+                  `💡 _Names and emails have been imported. To add birthdays and anniversaries, use *📥 Import CSV / XLSX* in the Data Manager._`,
+                ].join("\n"),
+              },
+            },
+          ],
+        });
+
+        await home.publishHome(client, body.user.id);
+      } catch (error) {
+        logger.error("Failed to sync Slack users", error);
+        try {
+          const dmChannelId = await slack.openDirectMessage(client, body.user.id);
+          await client.chat.postMessage({
+            channel: dmChannelId,
+            text: `❌ Slack user sync failed: ${error.message || "Unknown error"}`,
+          });
+        } catch (dmError) {
+          logger.error("Failed to send sync error DM", dmError);
+        }
       }
     });
 

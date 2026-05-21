@@ -1348,6 +1348,29 @@ function createDbHelpers({ logger = console } = {}) {
     return normalizeBulkTemplateHistory(await insertRow("bulk_template_history", payload));
   }
 
+  async function backfillEmails(client, slackHelpers) {
+    const employees = await listEmployees();
+    let updated = 0;
+
+    for (const employee of employees) {
+      if (employee.email || !employee.slackId) {
+        continue;
+      }
+
+      try {
+        const email = await slackHelpers.getUserEmail(client, employee.slackId);
+        if (email) {
+          await syncUserEmail(employee.slackId, email);
+          updated += 1;
+        }
+      } catch (error) {
+        logger.error(`backfillEmails failed for ${employee.slackId}`, error);
+      }
+    }
+
+    return updated;
+  }
+
   return {
     detectColumns,
     supportsColumn,
@@ -1397,6 +1420,7 @@ function createDbHelpers({ logger = console } = {}) {
     deleteBulkTemplate,
     getBulkTemplateHistory,
     saveBulkTemplateHistory,
+    backfillEmails,
   };
 }
 
