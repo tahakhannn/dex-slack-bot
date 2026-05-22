@@ -199,14 +199,11 @@ function buildCelebrationBlocks({
     blocks.push(block);
   }
 
-  const rawCheer = cheerText || buildCheerLine(events);
-  // Strip all * and _ so internal markdown doesn't break the outer *_..._* wrapper
-  const cleanCheer = rawCheer.replace(/[*_]/g, "").trim();
   const cheerBlock = {
     type: "section",
     text: {
       type: "mrkdwn",
-      text: `*_${cleanCheer}_*`,
+      text: cheerText || buildCheerLine(events),
     },
   };
 
