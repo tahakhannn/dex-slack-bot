@@ -193,7 +193,16 @@ function buildCelebrationBlocks({
     },
   };
 
-  blocks.push({ type: "divider" }, cheerBlock);
+  blocks.push(
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "------",
+      },
+    },
+    cheerBlock,
+  );
 
   if (gifUrl) {
     blocks.push({
