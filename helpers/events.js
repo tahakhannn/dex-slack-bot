@@ -8,7 +8,7 @@ const SETTINGS_DEFAULTS = {
   postTime: "09:00",
   timezone: "UTC",
   frequency: "daily",
-  weekendPolicy: "next_business_day",
+  weekendPolicy: "same_day",
   includeGif: true,
   mentionChannel: false,
   mentionSettings: "celebrants_only",
