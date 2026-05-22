@@ -200,7 +200,8 @@ function buildCelebrationBlocks({
   }
 
   const rawCheer = cheerText || buildCheerLine(events);
-  const cleanCheer = rawCheer.replace(/^\*_?|_?\*$/g, "").replace(/^_\*?|\*?_$/g, "").trim();
+  // Strip all * and _ so internal markdown doesn't break the outer *_..._* wrapper
+  const cleanCheer = rawCheer.replace(/[*_]/g, "").trim();
   const cheerBlock = {
     type: "section",
     text: {
