@@ -75,7 +75,7 @@ function createHomeModule({ db, slack, logger = console }) {
     ];
 
     if (!isBotInChannel && settings.channelId) {
-      lines.push("\n⚠️ *Dex is not in this channel! Please add Dex to the channel so celebrations can be posted.*");
+      lines.push("\n⚠️ *Cheery is not in this channel! Please add Cheery to the channel so celebrations can be posted.*");
     }
 
     if (allRecorded) {
@@ -440,12 +440,7 @@ function createHomeModule({ db, slack, logger = console }) {
       };
     }
 
-    const blocks = [
-      {
-        type: "header",
-        text: { type: "plain_text", text: "🤖 Dex" },
-      },
-    ];
+    const blocks = [];
 
     if (isAdmin && missingUsers.length) {
       blocks.push(buildMissingDataBlock(missingUsers));
@@ -711,7 +706,7 @@ function createHomeModule({ db, slack, logger = console }) {
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "📊 Dex Analytics" },
+                text: { type: "plain_text", text: "📊 Cheery Analytics" },
               },
               {
                 type: "context",

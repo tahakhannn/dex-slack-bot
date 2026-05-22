@@ -3,7 +3,7 @@ const { app, receiver, db, slack, logger, REQUIRED_SCOPES } = require("./app");
 const port = Number(process.env.PORT || 3000);
 
 receiver.app.listen(port, async () => {
-  logger.info(`Dex API Web Service listening on port ${port}`);
+  logger.info(`Cheery API Web Service listening on port ${port}`);
   logger.info(`Required Slack scopes: ${REQUIRED_SCOPES.join(", ")}`);
 
   // Backfill emails for employees missing them

@@ -62,7 +62,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
         elements: [
           {
             type: "plain_text",
-            text: "Configure which channel Dex posts to and what events to celebrate. Fine-tune timing and preferences on the next page.",
+            text: "Configure which channel Cheery posts to and what events to celebrate. Fine-tune timing and preferences on the next page.",
           },
         ],
       },
@@ -245,7 +245,7 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           await ack({
             response_action: "errors",
             errors: {
-              channel_id: "Dex bot is not in this channel. Please add/invite Dex to the channel first.",
+              channel_id: "Cheery bot is not in this channel. Please add/invite Cheery to the channel first.",
             },
           });
           return;

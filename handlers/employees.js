@@ -42,7 +42,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Pick a Slack teammate to add to Dex. You'll set their birthday and work anniversary on the next screen.",
+              text: "Pick a Slack teammate to add to Cheery. You'll set their birthday and work anniversary on the next screen.",
             },
           ],
         },
@@ -257,7 +257,7 @@ function createEmployeesModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "plain_text",
-              text: "Grant or revoke admin access to Dex. Admins can manage settings, employees, templates, and more.",
+              text: "Grant or revoke admin access to Cheery. Admins can manage settings, employees, templates, and more.",
             },
           ],
         },

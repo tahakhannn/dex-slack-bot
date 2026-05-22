@@ -403,7 +403,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
           elements: [
             {
               type: "mrkdwn",
-              text: "Upload a file, paste CSV text, or provide a URL. Dex auto-detects columns.\n*Supported:* `slack_id` · `email` · `name` · `birthday` · `anniversary` · `birth_day` · `birth_month` · `anniv_day` · `anniv_month` · `anniv_year`",
+              text: "Upload a file, paste CSV text, or provide a URL. Cheery auto-detects columns.\n*Supported:* `slack_id` · `email` · `name` · `birthday` · `anniversary` · `birth_day` · `birth_month` · `anniv_day` · `anniv_month` · `anniv_year`",
             },
           ],
         },
@@ -552,7 +552,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
       await client.files.uploadV2({
         channel_id: dmChannelId,
         filename: `dex-export-${DateTime.now().toFormat("yyyy-LL-dd")}.csv`,
-        title: "Dex employee export",
+        title: "Cheery employee export",
         content: csvText,
       });
       return;

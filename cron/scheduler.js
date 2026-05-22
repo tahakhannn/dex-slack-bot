@@ -447,7 +447,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
     } catch (error) {
       recordFailure(now);
       if (error.data?.error === "not_in_channel") {
-        logger.error(`⚠️ CANNOT POST CELEBRATION: Dex bot is not a member of channel ${channelId}. Please add/invite Dex to the channel first.`);
+        logger.error(`⚠️ CANNOT POST CELEBRATION: Cheery bot is not a member of channel ${channelId}. Please add/invite Cheery to the channel first.`);
       } else {
         logger.error(`Slack send failed permanently: ${logLabel}`, error?.data || error);
       }
@@ -635,7 +635,7 @@ function createScheduler({ app, db, slack, manageTemplates = null, logger = cons
       } catch (error) {
         recordFailure(DateTime.now());
         if (error.data?.error === "not_in_channel") {
-          logger.error(`⚠️ CANNOT POST REMINDER: Dex bot is not a member of channel ${event.channelId}. Please add/invite Dex to the channel first.`);
+          logger.error(`⚠️ CANNOT POST REMINDER: Cheery bot is not a member of channel ${event.channelId}. Please add/invite Cheery to the channel first.`);
         } else {
           logger.error("Slack error while posting channel reminder", error?.data || error);
         }

@@ -14,14 +14,14 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: source === "onboarding" ? "🎉 Welcome to Dex!" : "👤 Update Your Profile" },
+          text: { type: "plain_text", text: source === "onboarding" ? "🎉 Welcome to Cheery!" : "👤 Update Your Profile" },
         },
         {
           type: "context",
           elements: [
             {
               type: "plain_text",
-              text: "Share your birthday and work anniversary so Dex can celebrate the right moments with the whole team. 🥳",
+              text: "Share your birthday and work anniversary so Cheery can celebrate the right moments with the whole team. 🥳",
             },
           ],
         },
@@ -67,11 +67,11 @@ function createOnboardingModule({ db, slack, home, logger = console }) {
     const dmChannelId = await slack.openDirectMessage(client, userId);
     await client.chat.postMessage({
       channel: dmChannelId,
-      text: "🎉 Welcome to Dex — let's set up your profile!",
+      text: "🎉 Welcome to Cheery — let's set up your profile!",
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "🎉 Welcome to Dex!" },
+          text: { type: "plain_text", text: "🎉 Welcome to Cheery!" },
         },
         {
           type: "section",
