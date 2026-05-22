@@ -145,12 +145,26 @@ function buildCelebrationBlocks({
   now = DateTime.now(),
   includeChannelPing = true,
 }) {
-  const blocks = [
-    {
+  const cleanIntro = introText.replace(/[*_]/g, "").trim().substring(0, 150);
+  const blocks = [];
+
+  if (includeChannelPing) {
+    blocks.push({
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `${includeChannelPing ? "<!channel>\n\n" : ""}*${introText}*`,
+        text: "<!channel>",
+      },
+    });
+  }
+
+  blocks.push(
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: cleanIntro || "Time to celebrate! 🎉",
+        emoji: true,
       },
     },
     {
@@ -162,7 +176,7 @@ function buildCelebrationBlocks({
         },
       ],
     },
-  ];
+  );
 
   for (const event of events) {
     const display = displaysByUser.get(event.userId) || {};
