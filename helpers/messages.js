@@ -185,11 +185,13 @@ function buildCelebrationBlocks({
     blocks.push(block);
   }
 
+  const rawCheer = cheerText || buildCheerLine(events);
+  const cleanCheer = rawCheer.replace(/^\*_?|_?\*$/g, "").replace(/^_\*?|\*?_$/g, "").trim();
   const cheerBlock = {
     type: "section",
     text: {
       type: "mrkdwn",
-      text: cheerText || buildCheerLine(events),
+      text: `*_${cleanCheer}_*`,
     },
   };
 
