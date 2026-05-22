@@ -146,7 +146,11 @@ function createHomeModule({ db, slack, logger = console }) {
   }
 
   async function buildPreviewModal(client, settings, events, previewUserId) {
-    const channelName = await slack.getConversationName(client, settings.channelId);
+    const [channelName, birthdayTemplates, anniversaryTemplates] = await Promise.all([
+      slack.getConversationName(client, settings.channelId),
+      db.listBulkTemplates("birthday"),
+      db.listBulkTemplates("anniversary"),
+    ]);
 
     const blocks = [
       {
@@ -182,11 +186,24 @@ function createHomeModule({ db, slack, logger = console }) {
         const typeLabel = isBirthday ? "Birthday" : "Work Anniversary";
         const dateStr = formatCelebrationDate(event.date, true);
 
+        const templates = isBirthday ? birthdayTemplates : anniversaryTemplates;
+        let templateName = "Default Template";
+        
+        if (templates.length > 0) {
+          const history = await db.getBulkTemplateHistory(event.userId, event.type);
+          const lastId = history?.lastTemplateId ?? null;
+          let candidates = templates.filter((t) => t.id !== lastId);
+          if (!candidates.length) candidates = templates;
+          
+          const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+          templateName = chosen.name;
+        }
+
         blocks.push({
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `${typeEmoji} *${typeLabel}* for <@${event.userId}> · 📅 ${dateStr}`,
+            text: `${typeEmoji} *${typeLabel}* for <@${event.userId}> · 📅 ${dateStr}\n📝 *Template:* ${templateName}`,
           },
         });
       }
