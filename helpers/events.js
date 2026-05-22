@@ -209,12 +209,11 @@ function formatDateParts(dateParts) {
 }
 
 function buildDateSummary(label, dateParts) {
-  const icon = label === "Birthday" ? "🎂" : "💼";
   const formatted = formatDateParts(dateParts);
   if (formatted === "Not set") {
-    return `${icon} *${label}:* Not set`;
+    return `*${label}:* Not set`;
   }
-  return `${icon} *${label}:* ${formatted}`;
+  return `*${label}:* ${formatted}`;
 }
 
 function parseStoredDate(dateString) {
