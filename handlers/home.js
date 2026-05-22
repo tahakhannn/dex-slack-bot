@@ -85,15 +85,6 @@ function createHomeModule({ db, slack, logger = console }) {
     return lines.join("\n");
   }
 
-  function fallbackPreviewMessage(event, template) {
-    if (event.type === "birthday") {
-      return `🎂 Happy Birthday <@${event.userId}>!`;
-    }
-
-    const years = getAnniversaryYears(event, DateTime.now());
-    return `💼 Congratulations <@${event.userId}> on your ${years || ""} work anniversary!`.trim();
-  }
-
   async function buildCelebrationEvents(client, settings) {
     const employees = await db.listEmployees();
     const events = [];
@@ -154,121 +145,9 @@ function createHomeModule({ db, slack, logger = console }) {
     };
   }
 
-  function buildEventOverrideModal({ event, channelName, existingOverride, previewViewId, template }) {
-    const defaultMessage = template?.message || "";
-    const templateGifs = template?.gifUrls || [];
-    const messageValue = existingOverride?.customMessage || defaultMessage;
-    const gifValue = existingOverride?.gifUrl || "";
-    const typeEmoji = event.type === "birthday" ? "🎂" : "💼";
-    const typeLabel = event.type === "birthday" ? "Birthday" : "Work Anniversary";
-
-    const blocks = [
-      {
-        type: "header",
-        text: { type: "plain_text", text: `✏️ Edit Event` },
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `${typeEmoji} *${typeLabel}* · *${formatCelebrationDate(event.date, true)}*\n👤 <@${event.userId}> · 📢 ${channelName}`,
-        },
-      },
-      { type: "divider" },
-      {
-        type: "input",
-        block_id: "message",
-        optional: true,
-        label: { type: "plain_text", text: "🎉 Cheer message" },
-        element: {
-          type: "plain_text_input",
-          action_id: "value",
-          multiline: true,
-          ...(messageValue ? { initial_value: messageValue } : {}),
-          placeholder: { type: "plain_text", text: "Write a custom celebration message…" },
-        },
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: "Variables: `<@USER>`, `{ANNIV_YEARS}` · Format: `*bold*` `_italic_` `~strike~`",
-          },
-        ],
-      },
-      {
-        type: "input",
-        block_id: "gif",
-        optional: true,
-        label: { type: "plain_text", text: "🎬 GIF URL" },
-        element: {
-          type: "plain_text_input",
-          action_id: "value",
-          ...(gifValue ? { initial_value: gifValue } : {}),
-          placeholder: { type: "plain_text", text: "https://media.giphy.com/media/.../giphy.gif" },
-        },
-      },
-    ];
-
-    if (templateGifs.length) {
-      blocks.push({
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: `*🎬 GIFs from pool:*\n${templateGifs.map((url, i) => `${i + 1}. ${url}`).join("\n")}`,
-          },
-        ],
-      });
-    }
-
-    blocks.push(
-      { type: "divider" },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "plain_text",
-            text: "💡 Leave both fields blank to reset this event back to the default template.",
-          },
-        ],
-      },
-    );
-
-    return {
-      type: "modal",
-      callback_id: "save_event_override_modal",
-      title: { type: "plain_text", text: "✏️ Edit Event" },
-      submit: { type: "plain_text", text: "💾 Save" },
-      close: { type: "plain_text", text: "Cancel" },
-      private_metadata: JSON.stringify({
-        eventId: buildEventId({
-          slackId: event.userId,
-          type: event.type,
-          date: event.date.toISODate(),
-        }),
-        slackId: event.userId,
-        type: event.type,
-        date: event.date.toISODate(),
-        previewViewId,
-      }),
-      blocks,
-    };
-  }
-
   async function buildPreviewModal(client, settings, events, previewUserId) {
-    const [channelName, overrides, birthdayTemplate, anniversaryTemplate] = await Promise.all([
-      slack.getConversationName(client, settings.channelId),
-      db.listEventOverrides({
-        startDate: events[0]?.date?.toISODate() || DateTime.now().toISODate(),
-        endDate: events[Math.min(events.length - 1, 7)]?.date?.toISODate() || DateTime.now().toISODate(),
-      }),
-      db.getTemplate("birthday"),
-      db.getTemplate("anniversary"),
-    ]);
+    const channelName = await slack.getConversationName(client, settings.channelId);
 
-    const overrideMap = new Map(overrides.map((item) => [item.id, item]));
     const blocks = [
       {
         type: "header",
@@ -279,7 +158,7 @@ function createHomeModule({ db, slack, logger = console }) {
         elements: [
           {
             type: "mrkdwn",
-            text: `Preview how celebrations will appear in ${channelName ? `*#${channelName}*` : "your channel"}. Use the *⋮* menu to customize any event.`,
+            text: `Preview upcoming celebrations for ${channelName ? `*#${channelName}*` : "your channel"}.`,
           },
         ],
       },
@@ -298,66 +177,18 @@ function createHomeModule({ db, slack, logger = console }) {
       );
     } else {
       for (const event of events.slice(0, 8)) {
-        const eventId = buildEventId({
-          slackId: event.userId,
-          type: event.type,
-          date: event.date.toISODate(),
-        });
-        const override = overrideMap.get(eventId);
-        const template = event.type === "birthday" ? birthdayTemplate : anniversaryTemplate;
-        const fallbackMessage = fallbackPreviewMessage(event, template);
-        const messageBody = override?.customMessage || fallbackMessage;
-
         const isBirthday = event.type === "birthday";
         const typeEmoji = isBirthday ? "🎂" : "💼";
         const typeLabel = isBirthday ? "Birthday" : "Work Anniversary";
         const dateStr = formatCelebrationDate(event.date, true);
 
-        // Event card header
         blocks.push({
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `${typeEmoji}  *${typeLabel}*  ·  📅 ${dateStr}`,
-          },
-          accessory: {
-            type: "overflow",
-            action_id: "event_actions",
-            options: [
-              {
-                text: { type: "plain_text", text: "✏️ Customize Event" },
-                value: JSON.stringify({
-                  eventId,
-                  slackId: event.userId,
-                  type: event.type,
-                  date: event.date.toISODate(),
-                  previewUserId,
-                }),
-              },
-            ],
+            text: `${typeEmoji} *${typeLabel}* for <@${event.userId}> · 📅 ${dateStr}`,
           },
         });
-
-        // Employee + message preview
-        blocks.push({
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `👤 <@${event.userId}>\n\n> ${messageBody.split("\n").join("\n> ")}`,
-          },
-        });
-
-        // Status footer
-        const statusText = override
-          ? "✏️ *Customized* · This event has a personalized message"
-          : "📝 *Default template* · Using the standard celebration template";
-        blocks.push(
-          {
-            type: "context",
-            elements: [{ type: "mrkdwn", text: statusText }],
-          },
-          { type: "divider" },
-        );
       }
     }
 
@@ -858,79 +689,6 @@ function createHomeModule({ db, slack, logger = console }) {
       }
     });
 
-    app.action("event_actions", async ({ ack, body, action, client }) => {
-      await ack();
-
-      try {
-        if (!(await db.isAdmin(body.user.id))) {
-          return;
-        }
-
-        const payload = JSON.parse(action.selected_option.value);
-        const date = DateTime.fromISO(payload.date);
-        const homeState = getState(payload.previewUserId || body.user.id);
-        const settings = await db.getChannelSettings(homeState.selectedChannelId || process.env.DEFAULT_CHANNEL_ID);
-        const [existingOverride, template] = await Promise.all([
-          db.getEventOverride(payload.eventId),
-          db.getTemplate(payload.type),
-        ]);
-
-        await openOrPushModal({
-          client,
-          body,
-          view: buildEventOverrideModal({
-            event: {
-              userId: payload.slackId,
-              type: payload.type,
-              date,
-            },
-            channelName: await slack.getConversationName(client, settings.channelId),
-            existingOverride,
-            previewViewId: body.view?.id || null,
-            template,
-          }),
-        });
-      } catch (error) {
-        logger.error("Failed to open event override modal", error);
-      }
-    });
-
-    app.view("save_event_override_modal", async ({ ack, view, body, client }) => {
-      await ack({ response_action: "clear" });
-
-      try {
-        const metadata = JSON.parse(view.private_metadata || "{}");
-        const customMessage = (view.state.values.message.value.value || "").trim();
-        const gifUrl = (view.state.values.gif.value.value || "").trim();
-
-        if (!customMessage && !gifUrl) {
-          await db.deleteEventOverride(metadata.eventId);
-        } else {
-          await db.saveEventOverride({
-            id: metadata.eventId,
-            slackId: metadata.slackId,
-            type: metadata.type,
-            date: metadata.date,
-            customMessage,
-            gifUrl,
-          });
-        }
-
-        if (metadata.previewViewId) {
-          const homeState = getState(body.user.id);
-          const settings = await db.getChannelSettings(homeState.selectedChannelId || process.env.DEFAULT_CHANNEL_ID);
-          const events = await buildCelebrationEvents(client, settings);
-          await client.views.update({
-            view_id: metadata.previewViewId,
-            view: await buildPreviewModal(client, settings, events, body.user.id),
-          });
-        }
-
-        await publishHome(client, body.user.id);
-      } catch (error) {
-        logger.error("Failed to save event override", error);
-      }
-    });
   }
 
   return {
