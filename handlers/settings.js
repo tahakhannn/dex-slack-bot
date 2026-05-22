@@ -286,7 +286,6 @@ function createSettingsModule({ db, slack, home, logger = console }) {
           tagChannel: isChecked(values, "mention_channel"),
           // Preserve missing fields using defaults
           frequency: stepOne.frequency || SETTINGS_DEFAULTS.frequency,
-          weekendPolicy: stepOne.weekendPolicy || SETTINGS_DEFAULTS.weekendPolicy,
           style: stepOne.style || "fun",
           language: stepOne.language || "en",
           autoCollect: stepOne.autoCollect ?? false,

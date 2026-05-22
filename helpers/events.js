@@ -8,7 +8,7 @@ const SETTINGS_DEFAULTS = {
   postTime: "09:00",
   timezone: "UTC",
   frequency: "daily",
-  weekendPolicy: "same_day",
+
   includeGif: true,
   mentionChannel: false,
   mentionSettings: "celebrants_only",
@@ -268,27 +268,7 @@ function getNextOccurrence(dateParts, timezone, now = DateTime.now().setZone(tim
   return eventDate;
 }
 
-function applyWeekendPolicy(dateTime, weekendPolicy) {
-  if (!dateTime) {
-    return null;
-  }
 
-  if (dateTime.weekday < 6) {
-    return dateTime;
-  }
-
-  switch (weekendPolicy) {
-    case "previous_business_day":
-      return dateTime.weekday === 6 ? dateTime.minus({ days: 1 }) : dateTime.minus({ days: 2 });
-    case "skip_weekend":
-      return null;
-    case "same_day":
-      return dateTime;
-    case "next_business_day":
-    default:
-      return dateTime.weekday === 6 ? dateTime.plus({ days: 2 }) : dateTime.plus({ days: 1 });
-  }
-}
 
 function eventKey(event) {
   return [event.type, event.channelId || "home", event.userId, event.date.toISODate()].join(":");
@@ -300,16 +280,11 @@ function buildEventRecord({ type, userId, dateParts, timezone, settings, employe
     return null;
   }
 
-  const adjustedDate = applyWeekendPolicy(nextOccurrence, settings.weekendPolicy);
-  if (!adjustedDate) {
-    return null;
-  }
-
   return {
     type,
     userId,
     channelId: settings.channelId,
-    date: adjustedDate,
+    date: nextOccurrence,
     originalDate: nextOccurrence,
     dateParts: normalizeOptionalDate(dateParts),
     settings,
@@ -385,7 +360,7 @@ module.exports = {
   normalizeOptionalDate,
   hasDateParts,
   getNextOccurrence,
-  applyWeekendPolicy,
+
   buildEventRecord,
   sortEvents,
   paginateItems,

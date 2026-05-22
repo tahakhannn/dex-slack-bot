@@ -454,7 +454,7 @@ function createDbHelpers({ logger = console } = {}) {
       postTime: row.post_time || SETTINGS_DEFAULTS.postTime,
       timezone: row.timezone || SETTINGS_DEFAULTS.timezone,
       frequency: row.frequency || SETTINGS_DEFAULTS.frequency,
-      weekendPolicy: row.weekend_policy || SETTINGS_DEFAULTS.weekendPolicy,
+
       includeGif:
         row.include_gif === null || row.include_gif === undefined
           ? SETTINGS_DEFAULTS.includeGif
@@ -513,7 +513,7 @@ function createDbHelpers({ logger = console } = {}) {
       post_time: settings.postTime,
       timezone: settings.timezone,
       frequency: settings.frequency,
-      weekend_policy: settings.weekendPolicy,
+
       include_gif: settings.includeGif,
       mention_channel: settings.mentionChannel,
       tag_channel: settings.tagChannel ?? settings.mentionChannel,
