@@ -25,6 +25,19 @@ function createManageTemplatesModule({ db, home, logger = console }) {
     return type === "birthday" ? "Birthday" : "Work Anniversary";
   }
 
+  /** Truncate a mrkdwn message, ensuring *_ … _* formatting stays balanced. */
+  function truncateMessage(msg, maxLen = 100) {
+    if (!msg || msg.length <= maxLen) return msg || "";
+    let text = msg.slice(0, maxLen) + "…";
+    // Close unclosed bold-italic markers so Slack renders them correctly
+    const opens = (text.match(/\*_/g) || []).length;
+    const closes = (text.match(/_\*/g) || []).length;
+    if (opens > closes) {
+      text += "_*";
+    }
+    return text;
+  }
+
   /** Pick a bulk template that wasn't used last time for this user/type. */
   async function chooseBulkTemplateForEvent({ slackId, type }) {
     const templates = await db.listBulkTemplates(type);
@@ -123,7 +136,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}`,
+            text: `*${t.name}*\n${truncateMessage(t.message)}`,
           },
           accessory: {
             type: "overflow",
@@ -194,7 +207,7 @@ function createManageTemplatesModule({ db, home, logger = console }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${t.name}*\n${t.message.slice(0, 100)}${t.message.length > 100 ? "…" : ""}`,
+            text: `*${t.name}*\n${truncateMessage(t.message)}`,
           },
           accessory: {
             type: "overflow",

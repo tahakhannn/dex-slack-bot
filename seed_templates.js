@@ -31,7 +31,7 @@ const birthdayTemplates = [
     name: "Birthday Template 2",
     introText: "🌟 Grab your confetti — a star was born today! ✨",
     message:
-      "*_🎁 It's the big day! 🎉 Wishing you a birthday as awesome as you are — cheers to another trip around the sun! 🍰☀️🥂_*",
+      "*_🎁 It's your big day! 🎉 Wishing you a birthday as awesome as you are — cheers to another trip around the sun! 🍰☀️🥂_*",
   },
   {
     name: "Birthday Template 3",
@@ -60,31 +60,31 @@ const anniversaryTemplates = [
     name: "Work Anniversary Template 1",
     introText: "🏆 Achievement unlocked — milestone alert! 🎯",
     message:
-      "*_💼 Cheers on {ANNIV_YEARS} incredible year(s) with us! 🥂 Your dedication and hard work inspire everyone around you — here's to many more! 🌟🎉👏_*",
+      "*_💼 Cheers to another incredible year with us! 🥂 Your dedication and hard work inspire everyone around you — here's to many more! 🌟🎉👏_*",
   },
   {
     name: "Work Anniversary Template 2",
     introText: "📣 Attention team — we've got a legend in the house! 🎤✨",
     message:
-      "*_🎊 Celebrating {ANNIV_YEARS} year(s) of awesomeness! 💪 Thank you for being the rockstar you are — this team wouldn't be the same without you! 🤘🔥🥳_*",
+      "*_🎊 Celebrating another year of awesomeness! 💪 Thank you for being the rockstar you are — this team wouldn't be the same without you! 🤘🔥🥳_*",
   },
   {
     name: "Work Anniversary Template 3",
     introText: "🎯 Mark your calendars — today is a special day! 📅🌟",
     message:
-      "*_🥂 A standing ovation! 👏 {ANNIV_YEARS} year(s) of crushing it — you bring passion, grit, and greatness every single day! Keep shining! ✨💼🏅_*",
+      "*_🥂 A standing ovation! 👏 Another year of crushing it — you bring passion, grit, and greatness every single day! Keep shining! ✨💼🏅_*",
   },
   {
     name: "Work Anniversary Template 4",
     introText: "🌟 Roll out the red carpet — milestone moment incoming! 🎬🎉",
     message:
-      "*_🎉 Happy Work Anniversary! 🎈 {ANNIV_YEARS} year(s) of making magic happen — your journey here has been nothing short of amazing! Let's celebrate BIG! 🥳🚀💎_*",
+      "*_🎉 Happy Work Anniversary! 🎈 Another year of making magic happen — your journey here has been nothing short of amazing! Let's celebrate BIG! 🥳🚀💎_*",
   },
   {
     name: "Work Anniversary Template 5",
     introText: "⚡ Power move alert — someone just leveled up! 🆙🏆",
     message:
-      "*_💥 Boom! {ANNIV_YEARS} year(s) strong! 💣 From day one to today, you've been an absolute force — grateful to have you on this ride! Let's keep winning together! 🏆🙌🎊_*",
+      "*_💥 Boom! Another year strong! 💣 From day one to today, you've been an absolute force — grateful to have you on this ride! Let's keep winning together! 🏆🙌🎊_*",
   },
 ];
 
