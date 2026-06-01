@@ -56,31 +56,31 @@ const birthdayTemplates = [
     name: "Birthday Template 6",
     introText: "🎂 Guess who's leveling up today!",
     message:
-      "*_Happy Birthday! Wishing you an incredible day packed with good vibes, great people, and maybe a slice (or three) of cake! Cheers to you! 🥂🎈_*",
+      "*_🎂 Happy Birthday! Wishing you an incredible day packed with good vibes, great people, and maybe a slice (or three) of cake! Cheers to you! 🥂🎈_*",
   },
   {
     name: "Birthday Template 7",
     introText: "🥳 Today's forecast: 100% chance of celebration!",
     message:
-      "*_It's your birthday and the whole team is here to celebrate! May this year bring you all the happiness you spread to everyone around you. Have a wonderful one! 🎂✨_*",
+      "*_🎈 It's your birthday and the whole team is here to celebrate! May this year bring you all the happiness you spread to everyone around you. Have a wonderful one! 🎂✨_*",
   },
   {
     name: "Birthday Template 8",
     introText: "🎈 Hold up — someone special is celebrating today!",
     message:
-      "*_Happy Birthday! You make this team brighter just by being in it. Here's to a fantastic day, an even better year, and all the adventures ahead! 🎉🍰_*",
+      "*_🎁 Happy Birthday! You make this team brighter just by being in it. Here's to a fantastic day, an even better year, and all the adventures ahead! 🎉🍰_*",
   },
   {
     name: "Birthday Template 9",
     introText: "✨ A little birdie told us someone has a birthday today!",
     message:
-      "*_Cheers to another amazing year! May your day be filled with surprises, laughter, and every good thing coming your way. Enjoy your moment — you've earned it! 🥳🎁_*",
+      "*_🥳 Cheers to another amazing year! May your day be filled with surprises, laughter, and every good thing coming your way. Enjoy your moment — you've earned it! 🥳🎁_*",
   },
   {
     name: "Birthday Template 10",
     introText: "🎉 Sound the trumpets — it's a birthday celebration!",
     message:
-      "*_Happy Birthday! Another year older, another year wiser, and still just as awesome. The team is sending you all the warm wishes today — have a blast! 🎂🌟_*",
+      "*_🎉 Happy Birthday! Another year older, another year wiser, and still just as awesome. The team is sending you all the warm wishes today — have a blast! 🎂🌟_*",
   },
 ];
 
@@ -121,31 +121,31 @@ const anniversaryTemplates = [
     name: "Work Anniversary Template 6",
     introText: "🎯 Milestone moment — let's give it up for a team MVP!",
     message:
-      "*_Happy Work Anniversary! Your commitment and positive energy make a real difference around here. Thank you for another outstanding year — we're lucky to have you! 🥂👏_*",
+      "*_🏆 Happy Work Anniversary! Your commitment and positive energy make a real difference around here. Thank you for another outstanding year — we're lucky to have you! 🥂👏_*",
   },
   {
     name: "Work Anniversary Template 7",
     introText: "🌟 Today we celebrate someone who keeps raising the bar!",
     message:
-      "*_Another year in the books and you continue to impress! Your hard work, creativity, and teamwork don't go unnoticed. Here's to many more great years ahead! 🎉💼_*",
+      "*_🌟 Another year in the books and you continue to impress! Your hard work, creativity, and teamwork don't go unnoticed. Here's to many more great years ahead! 🎉💼_*",
   },
   {
     name: "Work Anniversary Template 8",
     introText: "📅 Anniversary alert — time to celebrate a key player!",
     message:
-      "*_Happy Work Anniversary! From big wins to everyday moments, you bring your best every single day. Cheers to your journey so far and everything still to come! 🏆✨_*",
+      "*_💼 Happy Work Anniversary! From big wins to everyday moments, you bring your best every single day. Cheers to your journey so far and everything still to come! 🏆✨_*",
   },
   {
     name: "Work Anniversary Template 9",
     introText: "👏 Hats off — someone is marking a special milestone today!",
     message:
-      "*_Congratulations on another wonderful year! You've grown, contributed, and inspired — and we can't wait to see what you accomplish next. Keep being amazing! 🌟🥳_*",
+      "*_👏 Congratulations on another wonderful year! You've grown, contributed, and inspired — and we can't wait to see what you accomplish next. Keep being amazing! 🌟🥳_*",
   },
   {
     name: "Work Anniversary Template 10",
     introText: "🏅 A round of applause for one of our finest!",
     message:
-      "*_Happy Work Anniversary! Your dedication speaks for itself. Thank you for being such a valued part of this team — here's to continued success and great memories together! 🎉🤝_*",
+      "*_🎉 Happy Work Anniversary! Your dedication speaks for itself. Thank you for being such a valued part of this team — here's to continued success and great memories together! 🎉🤝_*",
   },
 ];
 
