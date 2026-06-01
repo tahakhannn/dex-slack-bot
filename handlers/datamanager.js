@@ -728,7 +728,7 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: "❌ Invalid file format",
+                text: `❌ Import failed: ${error.message || "Invalid file format"}`,
               },
             },
           ],
