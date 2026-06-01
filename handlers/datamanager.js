@@ -154,12 +154,8 @@ function createDataManagerModule({ db, slack, home, logger = console }) {
 
   function extractSelectedFileIds(viewState) {
     const actionValue = viewState.upload_file?.csv_file || {};
-    return (
-      actionValue.selected_files ||
-      actionValue.files ||
-      actionValue.value ||
-      []
-    );
+    const filesArray = actionValue.selected_files || actionValue.files || actionValue.value || [];
+    return filesArray.map(f => (typeof f === 'object' && f !== null ? f.id : f)).filter(Boolean);
   }
 
   async function parseImportPayload(client, viewState) {
