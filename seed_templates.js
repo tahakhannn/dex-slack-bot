@@ -1,5 +1,6 @@
 /**
- * Seed script — inserts 5 Birthday + 5 Work Anniversary bulk templates.
+ * Seed script — inserts 10 Birthday + 10 Work Anniversary bulk templates,
+ * and seeds 15 Birthday + 15 Work Anniversary GIFs into the centralized pool.
  *
  * Usage:  node seed_templates.js
  *
@@ -51,6 +52,36 @@ const birthdayTemplates = [
     message:
       "*_🌈 Happy Birthday! 🎊 You bring so much energy to this team — today it's our turn to bring the energy to YOU! Let's gooo! 🚀🎂🔥_*",
   },
+  {
+    name: "Birthday Template 6",
+    introText: "🎂 Guess who's leveling up today!",
+    message:
+      "*_Happy Birthday! Wishing you an incredible day packed with good vibes, great people, and maybe a slice (or three) of cake! Cheers to you! 🥂🎈_*",
+  },
+  {
+    name: "Birthday Template 7",
+    introText: "🥳 Today's forecast: 100% chance of celebration!",
+    message:
+      "*_It's your birthday and the whole team is here to celebrate! May this year bring you all the happiness you spread to everyone around you. Have a wonderful one! 🎂✨_*",
+  },
+  {
+    name: "Birthday Template 8",
+    introText: "🎈 Hold up — someone special is celebrating today!",
+    message:
+      "*_Happy Birthday! You make this team brighter just by being in it. Here's to a fantastic day, an even better year, and all the adventures ahead! 🎉🍰_*",
+  },
+  {
+    name: "Birthday Template 9",
+    introText: "✨ A little birdie told us someone has a birthday today!",
+    message:
+      "*_Cheers to another amazing year! May your day be filled with surprises, laughter, and every good thing coming your way. Enjoy your moment — you've earned it! 🥳🎁_*",
+  },
+  {
+    name: "Birthday Template 10",
+    introText: "🎉 Sound the trumpets — it's a birthday celebration!",
+    message:
+      "*_Happy Birthday! Another year older, another year wiser, and still just as awesome. The team is sending you all the warm wishes today — have a blast! 🎂🌟_*",
+  },
 ];
 
 // ─── Work Anniversary Templates ────────────────────────────────────────────
@@ -86,10 +117,80 @@ const anniversaryTemplates = [
     message:
       "*_💥 Boom! Another year strong! 💣 From day one to today, you've been an absolute force — grateful to have you on this ride! Let's keep winning together! 🏆🙌🎊_*",
   },
+  {
+    name: "Work Anniversary Template 6",
+    introText: "🎯 Milestone moment — let's give it up for a team MVP!",
+    message:
+      "*_Happy Work Anniversary! Your commitment and positive energy make a real difference around here. Thank you for another outstanding year — we're lucky to have you! 🥂👏_*",
+  },
+  {
+    name: "Work Anniversary Template 7",
+    introText: "🌟 Today we celebrate someone who keeps raising the bar!",
+    message:
+      "*_Another year in the books and you continue to impress! Your hard work, creativity, and teamwork don't go unnoticed. Here's to many more great years ahead! 🎉💼_*",
+  },
+  {
+    name: "Work Anniversary Template 8",
+    introText: "📅 Anniversary alert — time to celebrate a key player!",
+    message:
+      "*_Happy Work Anniversary! From big wins to everyday moments, you bring your best every single day. Cheers to your journey so far and everything still to come! 🏆✨_*",
+  },
+  {
+    name: "Work Anniversary Template 9",
+    introText: "👏 Hats off — someone is marking a special milestone today!",
+    message:
+      "*_Congratulations on another wonderful year! You've grown, contributed, and inspired — and we can't wait to see what you accomplish next. Keep being amazing! 🌟🥳_*",
+  },
+  {
+    name: "Work Anniversary Template 10",
+    introText: "🏅 A round of applause for one of our finest!",
+    message:
+      "*_Happy Work Anniversary! Your dedication speaks for itself. Thank you for being such a valued part of this team — here's to continued success and great memories together! 🎉🤝_*",
+  },
+];
+
+// ─── Birthday GIFs (centralized pool) ──────────────────────────────────────
+
+const birthdayGifs = [
+  "https://media.giphy.com/media/g5R9dok94mrIvplmZd/200.gif",
+  "https://media.giphy.com/media/WRL7YgP42OKns22wRD/200.gif",
+  "https://media.giphy.com/media/KdC9XVrVYOVu6zZiMH/200.gif",
+  "https://media.giphy.com/media/l0MYBJzJpfyYjnzq8/200.gif",
+  "https://media.giphy.com/media/artj92V8o75VPL7AeQ/200.gif",
+  "https://media.giphy.com/media/26FPpSuhgHjIauStO/200.gif",
+  "https://media.giphy.com/media/l4KhSYN6hQ7Y0FZS0/200.gif",
+  "https://media.giphy.com/media/SwIMZUJE3ZPpHAfTC4/200.gif",
+  "https://media.giphy.com/media/26BRtW4zppWWjrsPu/200.gif",
+  "https://media.giphy.com/media/lMVNl6XxTvXgs/200.gif",
+  "https://media.giphy.com/media/v6aOjy0Qo1fIA/200.gif",
+  "https://media.giphy.com/media/3o7TKU8RvQuomFfUUU/200.gif",
+  "https://media.giphy.com/media/WmWJMwSYMjmrS/200.gif",
+  "https://media.giphy.com/media/Ib6HUhBisFj6yPQKla/200.gif",
+  "https://media.giphy.com/media/26tOZ42Mg6r3W1oIw/200.gif",
+];
+
+// ─── Work Anniversary GIFs (centralized pool) ─────────────────────────────
+
+const anniversaryGifs = [
+  "https://media.giphy.com/media/3o6fJ1BM7R2EBRDnxK/200.gif",
+  "https://media.giphy.com/media/l0HlMPcbD4jdARjRC/200.gif",
+  "https://media.giphy.com/media/l4q8cJzGdR9J8w3Hy/200.gif",
+  "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/200.gif",
+  "https://media.giphy.com/media/xUPGcMzfkOPQB6pMly/200.gif",
+  "https://media.giphy.com/media/26gsjCZpPolPr3sBy/200.gif",
+  "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/200.gif",
+  "https://media.giphy.com/media/l0HlMPcbD4jdARjRC/200.gif",
+  "https://media.giphy.com/media/mp1JYId8n0t3y/200.gif",
+  "https://media.giphy.com/media/3oFzm9r8SO9wFMi76E/200.gif",
+  "https://media.giphy.com/media/YRVMhB4OVsCzXHdvGZ/200.gif",
+  "https://media.giphy.com/media/d31w24psGYeekCZy/200.gif",
+  "https://media.giphy.com/media/xT0xeMA62E1XIlqNb2/200.gif",
+  "https://media.giphy.com/media/ZfK4cXKJTTay1Ava29/200.gif",
+  "https://media.giphy.com/media/l0Ex6kDPwiePm1TqM/200.gif",
 ];
 
 async function seed() {
-  console.log("🌱 Seeding birthday and work anniversary templates...\n");
+  console.log("🌱 Seeding 10 birthday + 10 work anniversary templates...\n");
 
   for (const t of birthdayTemplates) {
     const { data, error } = await supabase.from("bulk_templates").insert({
@@ -129,7 +230,104 @@ async function seed() {
     }
   }
 
-  console.log("\n🎉 Done! All templates seeded.");
+  // ─── Seed centralized GIF pools ──────────────────────────────────────────
+  console.log("\n🎬 Seeding centralized GIF pools...\n");
+
+  // Birthday GIFs
+  const { error: bdayGifError } = await supabase
+    .from("templates")
+    .upsert(
+      {
+        workspace_id: WORKSPACE_ID,
+        type: "birthday",
+        message: "",
+        intro_text: "",
+        gif_urls: birthdayGifs,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "type" },
+    );
+
+  if (bdayGifError) {
+    // Fallback: try insert then update
+    const existing = await supabase.from("templates").select("*").eq("type", "birthday").limit(1);
+    if (existing.data?.[0]) {
+      const { error: updateErr } = await supabase
+        .from("templates")
+        .update({ gif_urls: birthdayGifs, updated_at: new Date().toISOString() })
+        .eq("type", "birthday");
+      if (updateErr) {
+        console.error("❌ Failed to update birthday GIF pool:", updateErr.message);
+      } else {
+        console.log(`✅ Birthday GIF pool — updated (${birthdayGifs.length} GIFs)`);
+      }
+    } else {
+      const { error: insertErr } = await supabase.from("templates").insert({
+        workspace_id: WORKSPACE_ID,
+        type: "birthday",
+        message: "",
+        intro_text: "",
+        gif_urls: birthdayGifs,
+        updated_at: new Date().toISOString(),
+      });
+      if (insertErr) {
+        console.error("❌ Failed to insert birthday GIF pool:", insertErr.message);
+      } else {
+        console.log(`✅ Birthday GIF pool — inserted (${birthdayGifs.length} GIFs)`);
+      }
+    }
+  } else {
+    console.log(`✅ Birthday GIF pool — seeded (${birthdayGifs.length} GIFs)`);
+  }
+
+  // Anniversary GIFs
+  const { error: annivGifError } = await supabase
+    .from("templates")
+    .upsert(
+      {
+        workspace_id: WORKSPACE_ID,
+        type: "anniversary",
+        message: "",
+        intro_text: "",
+        gif_urls: anniversaryGifs,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "type" },
+    );
+
+  if (annivGifError) {
+    // Fallback: try insert then update
+    const existing = await supabase.from("templates").select("*").eq("type", "anniversary").limit(1);
+    if (existing.data?.[0]) {
+      const { error: updateErr } = await supabase
+        .from("templates")
+        .update({ gif_urls: anniversaryGifs, updated_at: new Date().toISOString() })
+        .eq("type", "anniversary");
+      if (updateErr) {
+        console.error("❌ Failed to update anniversary GIF pool:", updateErr.message);
+      } else {
+        console.log(`✅ Anniversary GIF pool — updated (${anniversaryGifs.length} GIFs)`);
+      }
+    } else {
+      const { error: insertErr } = await supabase.from("templates").insert({
+        workspace_id: WORKSPACE_ID,
+        type: "anniversary",
+        message: "",
+        intro_text: "",
+        gif_urls: anniversaryGifs,
+        updated_at: new Date().toISOString(),
+      });
+      if (insertErr) {
+        console.error("❌ Failed to insert anniversary GIF pool:", insertErr.message);
+      } else {
+        console.log(`✅ Anniversary GIF pool — inserted (${anniversaryGifs.length} GIFs)`);
+      }
+    }
+  } else {
+    console.log(`✅ Anniversary GIF pool — seeded (${anniversaryGifs.length} GIFs)`);
+  }
+
+  console.log("\n🎉 Done! All templates and GIFs seeded.");
 }
 
 seed().catch((err) => {
